@@ -9,13 +9,14 @@ use App\Http\Controllers\Api\DetectionController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\SensorController;
+use App\Http\Controllers\Api\ThresholdController;
 use Illuminate\Support\Facades\Route;
 
 // Public Endpoints
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:login')->post('/login', [AuthController::class, 'login']);
 
 // Vision Service Endpoint (External Vision Python Service)
-Route::post('/vision/detections', [DetectionController::class, 'store']);
+Route::middleware(['vision.key', 'throttle:vision'])->post('/vision/detections', [DetectionController::class, 'store']);
 
 // Authenticated Endpoints
 Route::middleware('auth:sanctum')->group(function () {
@@ -34,6 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Sensors
     Route::get('/sensors/latest', [SensorController::class, 'latest']);
     Route::get('/sensors/history', [SensorController::class, 'history']);
+
+    // Thresholds
+    Route::get('/thresholds', [ThresholdController::class, 'index']);
+    Route::middleware('operator')->put('/thresholds/{sensorType}', [ThresholdController::class, 'update']);
 
     // Cameras
     Route::get('/cameras', [CameraController::class, 'index']);
@@ -56,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/recommendations/{id}', [RecommendationController::class, 'show']);
 
     // Actuators
-    Route::post('/actuators/fan/control', [ActuatorController::class, 'controlFan']);
+    Route::middleware('operator')->post('/actuators/fan/control', [ActuatorController::class, 'controlFan']);
     Route::get('/actuators/fan/status', [ActuatorController::class, 'statusFan']);
     Route::get('/actuators/logs', [ActuatorController::class, 'logs']);
 });

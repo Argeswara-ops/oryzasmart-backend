@@ -17,12 +17,12 @@ class DetectionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'camera_id' => 'required|string',
-            'detection_type' => 'required|string',
-            'class_name' => 'required|string',
-            'confidence' => 'required|numeric',
-            'image_path' => 'nullable|string',
-            'detected_at' => 'nullable|string',
+            'camera_id' => ['required', 'string', 'max:100'],
+            'detection_type' => ['required', 'string', 'in:PEST,DISEASE,HEALTHY,UNKNOWN,pest,disease,healthy,unknown'],
+            'class_name' => ['required', 'string', 'max:255'],
+            'confidence' => ['required', 'numeric', 'between:0,1'],
+            'image_path' => ['nullable', 'string', 'max:2048'],
+            'detected_at' => ['nullable', 'date'],
         ]);
 
         $detection = $this->visionService->processDetection($validated);

@@ -36,9 +36,14 @@ class VisionService
             'last_seen' => now(),
         ]);
 
+        $detectionType = strtoupper($payload['detection_type'] ?? 'UNKNOWN');
+        if (! in_array($detectionType, ['PEST', 'DISEASE', 'HEALTHY', 'UNKNOWN'], true)) {
+            $detectionType = 'UNKNOWN';
+        }
+
         $detection = Detection::create([
             'camera_id' => $camera->id,
-            'detection_type' => strtoupper($payload['detection_type'] ?? 'UNKNOWN'),
+            'detection_type' => $detectionType,
             'class_name' => $payload['class_name'] ?? 'unknown',
             'confidence' => (float) ($payload['confidence'] ?? 0.0),
             'image_path' => $payload['image_path'] ?? null,

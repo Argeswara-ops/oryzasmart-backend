@@ -19,9 +19,9 @@ class ActuatorController extends Controller
     public function controlFan(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'device_id' => 'required|string',
-            'command' => 'required|string|in:ON,OFF,on,off',
-            'mode' => 'nullable|string|in:AUTO,MANUAL,auto,manual',
+            'device_id' => ['required', 'string', 'max:100'],
+            'command' => ['required', 'string', 'in:ON,OFF,on,off'],
+            'mode' => ['nullable', 'string', 'in:AUTO,MANUAL,auto,manual'],
         ]);
 
         $deviceCode = $validated['device_id'];
@@ -38,7 +38,7 @@ class ActuatorController extends Controller
 
         $actuator = Actuator::firstOrCreate(
             ['device_id' => $device->id, 'type' => 'fan'],
-            ['name' => 'Kipas Pentilasi', 'mode' => strtoupper($validated['mode'] ?? 'MANUAL'), 'status' => 'OFF']
+            ['name' => 'Kipas Ventilasi', 'mode' => strtoupper($validated['mode'] ?? 'MANUAL'), 'status' => 'OFF']
         );
 
         $mode = strtoupper($validated['mode'] ?? 'MANUAL');

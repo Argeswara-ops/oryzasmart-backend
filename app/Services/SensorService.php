@@ -6,6 +6,7 @@ use App\Models\Device;
 use App\Models\SensorReading;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class SensorService
 {
@@ -16,8 +17,23 @@ class SensorService
     public function processPayload(array $payload): ?SensorReading
     {
         $deviceCode = $payload['device_id'] ?? null;
-        if (! $deviceCode) {
-            Log::warning('Sensor payload missing device_id', $payload);
+        $validator = Validator::make($payload, [
+            'device_id' => ['required', 'string', 'max:100'],
+            'temperature' => ['required', 'numeric'],
+            'humidity' => ['required', 'numeric'],
+            'nitrogen' => ['required', 'numeric'],
+            'phosphorus' => ['required', 'numeric'],
+            'potassium' => ['required', 'numeric'],
+            'light' => ['required', 'numeric'],
+            'ultrasonic' => ['required', 'numeric'],
+            'recorded_at' => ['nullable', 'date'],
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning('Invalid MQTT sensor payload', [
+                'payload' => $payload,
+                'errors' => $validator->errors()->toArray(),
+            ]);
 
             return null;
         }
@@ -39,14 +55,14 @@ class SensorService
 
         $reading = SensorReading::create([
             'device_id' => $device->id,
-            'temperature' => isset($payload['temperature']) ? (float) $payload['temperature'] : null,
-            'humidity' => isset($payload['humidity']) ? (float) $payload['humidity'] : null,
-            'nitrogen' => isset($payload['nitrogen']) ? (float) $payload['nitrogen'] : null,
-            'phosphorus' => isset($payload['phosphorus']) ? (float) $payload['phosphorus'] : null,
-            'potassium' => isset($payload['potassium']) ? (float) $payload['potassium'] : null,
-            'light' => isset($payload['light']) ? (float) $payload['light'] : null,
-            'ultrasonic' => isset($payload['ultrasonic']) ? (float) $payload['ultrasonic'] : null,
-            'recorded_at' => now(),
+            'temperature' => (float) $payload['temperature'],
+            'humidity' => (float) $payload['humidity'],
+            'nitrogen' => (float) $payload['nitrogen'],
+            'phosphorus' => (float) $payload['phosphorus'],
+            'potassium' => (float) $payload['potassium'],
+            'light' => (float) $payload['light'],
+            'ultrasonic' => (float) $payload['ultrasonic'],
+            'recorded_at' => isset($payload['recorded_at']) ? Carbon::parse($payload['recorded_at']) : now(),
         ]);
 
         $this->smartDecisionService->evaluate();

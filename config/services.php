@@ -2,6 +2,10 @@
 
 return [
 
+    'vision' => [
+        'api_key' => env('VISION_API_KEY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

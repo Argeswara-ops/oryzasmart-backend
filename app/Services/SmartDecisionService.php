@@ -19,7 +19,7 @@ class SmartDecisionService
     {
         $latestSensor = SensorReading::latest('recorded_at')->first();
         $latestDetection = Detection::latest('detected_at')->first();
-        $thresholds = SensorThreshold::all()->keyBy('sensor_type');
+        $thresholds = SensorThreshold::query()->get()->keyBy('sensor_type');
 
         $systemStatus = 'NORMAL';
         $issues = [];
@@ -53,6 +53,21 @@ class SmartDecisionService
                     $recommendationsText[] = 'Lakukan pemupukan unsur N pada media tanam pembibitan.';
                 }
             }
+
+            foreach (['phosphorus', 'potassium', 'light', 'ultrasonic'] as $sensorType) {
+                $threshold = $thresholds->get($sensorType);
+                $value = $latestSensor->{$sensorType};
+
+                if (! $threshold || $value === null) {
+                    continue;
+                }
+
+                if ($value < $threshold->min_value || $value > $threshold->max_value) {
+                    $systemStatus = 'WARNING';
+                    $issues[] = ucfirst($sensorType)." di luar batas: {$value} (Rentang: {$threshold->min_value}-{$threshold->max_value})";
+                    $recommendationsText[] = "Periksa dan sesuaikan kondisi {$sensorType} pada area pembibitan.";
+                }
+            }
         }
 
         // 2. Evaluate Computer Vision Detection
@@ -77,6 +92,7 @@ class SmartDecisionService
             if (! $recentAlert) {
                 $alert = Alert::create([
                     'device_id' => $latestSensor?->device_id,
+                    'camera_id' => $latestDetection?->camera_id,
                     'detection_id' => $latestDetection?->id,
                     'type' => 'SMART_DECISION',
                     'source' => 'SmartDecisionService',

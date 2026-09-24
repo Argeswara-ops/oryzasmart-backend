@@ -153,4 +153,37 @@ class SmartRiceNurseryApiTest extends TestCase
         $this->actingAs($this->user)->getJson('/api/alerts')->assertStatus(200);
         $this->actingAs($this->user)->getJson('/api/recommendations')->assertStatus(200);
     }
+
+    public function test_operator_can_read_and_update_sensor_thresholds(): void
+    {
+        $this->actingAs($this->user)
+            ->getJson('/api/thresholds')
+            ->assertOk()
+            ->assertJsonPath('data.0.sensor_type', 'humidity');
+
+        $this->actingAs($this->user)
+            ->putJson('/api/thresholds/temperature', [
+                'min_value' => 21,
+                'max_value' => 31,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.max_value', 31);
+
+        $this->assertDatabaseHas('sensor_thresholds', [
+            'sensor_type' => 'temperature',
+            'max_value' => 31,
+        ]);
+    }
+
+    public function test_vision_detection_rejects_invalid_confidence(): void
+    {
+        $response = $this->postJson('/api/vision/detections', [
+            'camera_id' => 'CAM-01',
+            'detection_type' => 'disease',
+            'class_name' => 'rice_blast',
+            'confidence' => 1.5,
+        ]);
+
+        $response->assertUnprocessable();
+    }
 }

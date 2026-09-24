@@ -24,7 +24,10 @@ class SensorController extends Controller
 
     public function history(Request $request): JsonResponse
     {
-        $range = $request->query('range', 'today');
+        $validated = $request->validate([
+            'range' => ['nullable', 'in:today,7days,30days'],
+        ]);
+        $range = $validated['range'] ?? 'today';
 
         return response()->json([
             'success' => true,
