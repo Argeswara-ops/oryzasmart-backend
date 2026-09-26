@@ -15,7 +15,8 @@ class MqttService
         if ($this->client === null) {
             $host = config('mqtt.host', env('MQTT_HOST', '127.0.0.1'));
             $port = (int) config('mqtt.port', env('MQTT_PORT', 1883));
-            $clientId = config('mqtt.client_id', env('MQTT_CLIENT_ID', 'laravel_padibackend_'.uniqid()));
+            $clientIdPrefix = config('mqtt.client_id', env('MQTT_CLIENT_ID', 'laravel_padibackend'));
+            $clientId = $clientIdPrefix.'_'.getmypid().'_'.bin2hex(random_bytes(3));
 
             $this->client = new MqttClient($host, $port, $clientId);
 
