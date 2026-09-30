@@ -89,7 +89,7 @@ class SensorService
 
     public function getLatest(): array
     {
-        $latest = SensorReading::latest('recorded_at')->first();
+        $latest = SensorReading::latest('id')->first();
         if (! $latest) {
             return [
                 'temperature' => 0,

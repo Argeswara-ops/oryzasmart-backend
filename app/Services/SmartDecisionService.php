@@ -17,7 +17,7 @@ class SmartDecisionService
 
     public function evaluate(): string
     {
-        $latestSensor = SensorReading::latest('recorded_at')->first();
+        $latestSensor = SensorReading::latest('id')->first();
         $latestDetection = Detection::latest('detected_at')->first();
         $thresholds = SensorThreshold::query()->get()->keyBy('sensor_type');
 

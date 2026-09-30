@@ -11,5 +11,6 @@ return [
     'status_topic' => env('MQTT_STATUS_TOPIC', 'oryza-smart/ESP32-01/status'),
     'fan_status_topic' => env('MQTT_FAN_STATUS_TOPIC', 'oryza-smart/ESP32-01/actuator/fan/status'),
     'fan_command_topic' => env('MQTT_FAN_COMMAND_TOPIC', 'oryza-smart/ESP32-01/actuator/fan/command'),
+    'fan_command_payload' => env('MQTT_FAN_COMMAND_PAYLOAD', 'wokwi_json'),
     'last_will_topic' => env('MQTT_LAST_WILL_TOPIC', 'oryza-smart/backend/status'),
 ];

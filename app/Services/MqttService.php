@@ -65,7 +65,7 @@ class MqttService
         }
     }
 
-    public function publishFanCommand(string $deviceCode, string $command): void
+    public function publishFanCommand(string $deviceCode, string $command, ?string $mode = null): void
     {
         $commandUpper = mb_strtoupper($command);
         if (! in_array($commandUpper, ['ON', 'OFF', 'AUTO'], true)) {
@@ -78,11 +78,23 @@ class MqttService
         }
 
         $topic = $this->topicForDevice((string) config('mqtt.fan_command_topic', 'oryza-smart/ESP32-01/actuator/fan/command'), $deviceCode);
-        $payload = json_encode([
-            'device_id' => $deviceCode,
-            'command' => $commandUpper,
-            'timestamp' => now()->toIso8601String(),
-        ], JSON_THROW_ON_ERROR);
+        $payload = $commandUpper;
+
+        if (config('mqtt.fan_command_payload') === 'wokwi_json') {
+            $modeUpper = $mode !== null ? mb_strtoupper($mode) : null;
+            $payloadData = $commandUpper === 'AUTO'
+                ? ['mode' => 'AUTO']
+                : ['state' => $commandUpper, 'mode' => $modeUpper ?: 'MANUAL'];
+
+            $payload = json_encode($payloadData, JSON_THROW_ON_ERROR);
+        } elseif (config('mqtt.fan_command_payload') === 'json') {
+            $payload = json_encode([
+                'device_id' => $deviceCode,
+                'command' => $commandUpper,
+                'mode' => $mode ? mb_strtoupper($mode) : null,
+                'timestamp' => now()->toIso8601String(),
+            ], JSON_THROW_ON_ERROR);
+        }
 
         $this->publish($topic, $payload);
     }
@@ -90,7 +102,7 @@ class MqttService
     public function publishFanMode(string $deviceCode, string $mode): void
     {
         if (mb_strtoupper($mode) === 'AUTO') {
-            $this->publishFanCommand($deviceCode, 'AUTO');
+            $this->publishFanCommand($deviceCode, 'AUTO', 'AUTO');
         }
     }
 

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Console\Commands\MqttListenCommand;
+use App\Models\Device;
 use App\Models\SensorReading;
 use App\Services\MqttService;
 use App\Services\SensorService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use Mockery\MockInterface;
@@ -13,6 +15,8 @@ use Tests\TestCase;
 
 class MqttSubscribeCommandTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_valid_wokwi_payload_is_forwarded_to_sensor_service(): void
     {
         config(['mqtt.default_device_id' => 'ESP32-01']);
@@ -86,6 +90,51 @@ class MqttSubscribeCommandTest extends TestCase
         $this->assertSame(28.4, $capturedPayload['temperature']);
     }
 
+    public function test_wokwi_sensor_payload_is_persisted_to_database(): void
+    {
+        config(['mqtt.default_device_id' => 'ESP32-01']);
+        $command = app(MqttListenCommand::class);
+        $payload = json_encode([
+            'device_id' => 'ESP32-01',
+            'uptime_s' => 456,
+            'temperature' => 28.5,
+            'humidity' => 72.4,
+            'npk' => ['n' => 42, 'p' => 21, 'k' => 33],
+            'light' => ['percent' => 68.5, 'uv_index' => 2.8],
+            'ultrasonic' => ['distance_cm' => 19.6, 'level_percent' => 70.2],
+            'fan' => ['state' => 'ON', 'mode' => 'AUTO'],
+            'recorded_at' => '2026-09-30 10:15:00',
+        ], JSON_THROW_ON_ERROR);
+
+        $reading = $command->processSensorMessage(
+            'oryza-smart/ESP32-01/sensors',
+            $payload,
+            app(SensorService::class)
+        );
+
+        $this->assertInstanceOf(SensorReading::class, $reading);
+        $this->assertDatabaseHas('devices', [
+            'device_code' => 'ESP32-01',
+            'type' => 'esp32',
+            'status' => 'ONLINE',
+        ]);
+        $this->assertDatabaseHas('sensor_readings', [
+            'device_id' => Device::where('device_code', 'ESP32-01')->value('id'),
+            'uptime_s' => 456,
+            'temperature' => 28.5,
+            'humidity' => 72.4,
+            'nitrogen' => 42,
+            'phosphorus' => 21,
+            'potassium' => 33,
+            'light_percent' => 68.5,
+            'uv_index' => 2.8,
+            'distance_cm' => 19.6,
+            'level_percent' => 70.2,
+            'fan_state' => 'ON',
+            'fan_mode' => 'AUTO',
+        ]);
+    }
+
     public function test_invalid_json_payload_is_logged_and_ignored(): void
     {
         Log::spy();
@@ -109,6 +158,7 @@ class MqttSubscribeCommandTest extends TestCase
         config([
             'mqtt.default_device_id' => 'ESP32-01',
             'mqtt.fan_command_topic' => 'oryza-smart/ESP32-01/actuator/fan/command',
+            'mqtt.fan_command_payload' => 'wokwi_json',
         ]);
 
         $mqttService = Mockery::mock(MqttService::class)->makePartial();
@@ -118,10 +168,30 @@ class MqttSubscribeCommandTest extends TestCase
                 $payload = json_decode($message, true);
 
                 return $topic === 'oryza-smart/ESP32-01/actuator/fan/command'
-                    && $payload['device_id'] === 'ESP32-01'
-                    && $payload['command'] === 'AUTO';
+                    && $payload === ['mode' => 'AUTO'];
             });
 
         $mqttService->publishFanCommand('ESP32-01', 'AUTO');
+    }
+
+    public function test_manual_fan_command_uses_wokwi_state_and_mode_payload(): void
+    {
+        config([
+            'mqtt.default_device_id' => 'ESP32-01',
+            'mqtt.fan_command_topic' => 'oryza-smart/ESP32-01/actuator/fan/command',
+            'mqtt.fan_command_payload' => 'wokwi_json',
+        ]);
+
+        $mqttService = Mockery::mock(MqttService::class)->makePartial();
+        $mqttService->shouldReceive('publish')
+            ->once()
+            ->withArgs(function (string $topic, string $message): bool {
+                $payload = json_decode($message, true);
+
+                return $topic === 'oryza-smart/ESP32-01/actuator/fan/command'
+                    && $payload === ['state' => 'ON', 'mode' => 'MANUAL'];
+            });
+
+        $mqttService->publishFanCommand('ESP32-01', 'ON', 'MANUAL');
     }
 }
