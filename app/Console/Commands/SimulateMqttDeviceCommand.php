@@ -44,20 +44,21 @@ class SimulateMqttDeviceCommand extends Command
                 : $scenario;
 
             $mqttService->publish(
-                "rice-nursery/{$deviceCode}/status",
+                $this->topicForDevice((string) config('mqtt.status_topic', 'oryza-smart/ESP32-01/status'), $deviceCode),
                 $this->jsonPayload(['status' => $status, 'timestamp' => now()->toIso8601String()])
             );
 
             $mqttService->publish(
-                "rice-nursery/{$deviceCode}/sensors",
+                $this->topicForDevice((string) config('mqtt.sensor_topic', 'oryza-smart/ESP32-01/sensors'), $deviceCode),
                 $this->jsonPayload($this->sensorPayload($deviceCode, $currentScenario))
             );
 
             if ($fanStatus !== null) {
                 $mqttService->publish(
-                    "rice-nursery/{$deviceCode}/actuator/fan/status",
+                    $this->topicForDevice((string) config('mqtt.fan_status_topic', 'oryza-smart/ESP32-01/actuator/fan/status'), $deviceCode),
                     $this->jsonPayload([
-                        'status' => mb_strtoupper((string) $fanStatus),
+                        'state' => mb_strtoupper((string) $fanStatus),
+                        'mode' => 'AUTO',
                         'timestamp' => now()->toIso8601String(),
                     ])
                 );
@@ -76,7 +77,7 @@ class SimulateMqttDeviceCommand extends Command
     }
 
     /**
-     * @return array{device_id: string, temperature: float, humidity: float, nitrogen: float, phosphorus: float, potassium: float, light: float, ultrasonic: float, recorded_at: string}
+     * @return array{device_id: string, uptime_s: int, temperature: float, humidity: float, npk: array{n: float, p: float, k: float}, light: array{percent: float, uv_index: float}, ultrasonic: array{distance_cm: float, level_percent: float}, fan: array{state: string, mode: string}, recorded_at: string}
      */
     private function sensorPayload(string $deviceCode, string $scenario): array
     {
@@ -84,34 +85,32 @@ class SimulateMqttDeviceCommand extends Command
             'normal' => [
                 'temperature' => 27.2,
                 'humidity' => 76.0,
-                'nitrogen' => 45.0,
-                'phosphorus' => 25.0,
-                'potassium' => 35.0,
-                'light' => 650.0,
-                'ultrasonic' => 18.0,
+                'npk' => ['n' => 45.0, 'p' => 25.0, 'k' => 35.0],
+                'light' => ['percent' => 65.0, 'uv_index' => 3.2],
+                'ultrasonic' => ['distance_cm' => 18.0, 'level_percent' => 72.0],
+                'fan' => ['state' => 'OFF', 'mode' => 'AUTO'],
             ],
             'warning' => [
                 'temperature' => 32.4,
                 'humidity' => 88.0,
-                'nitrogen' => 26.0,
-                'phosphorus' => 25.0,
-                'potassium' => 35.0,
-                'light' => 650.0,
-                'ultrasonic' => 18.0,
+                'npk' => ['n' => 26.0, 'p' => 25.0, 'k' => 35.0],
+                'light' => ['percent' => 65.0, 'uv_index' => 3.2],
+                'ultrasonic' => ['distance_cm' => 18.0, 'level_percent' => 72.0],
+                'fan' => ['state' => 'ON', 'mode' => 'AUTO'],
             ],
             'critical' => [
                 'temperature' => 34.8,
                 'humidity' => 91.0,
-                'nitrogen' => 23.0,
-                'phosphorus' => 12.0,
-                'potassium' => 18.0,
-                'light' => 1100.0,
-                'ultrasonic' => 3.0,
+                'npk' => ['n' => 23.0, 'p' => 12.0, 'k' => 18.0],
+                'light' => ['percent' => 95.0, 'uv_index' => 9.1],
+                'ultrasonic' => ['distance_cm' => 3.0, 'level_percent' => 94.0],
+                'fan' => ['state' => 'ON', 'mode' => 'AUTO'],
             ],
         ];
 
         return [
             'device_id' => $deviceCode,
+            'uptime_s' => 120,
             ...$payloads[$scenario],
             'recorded_at' => now()->toDateTimeString(),
         ];
@@ -123,5 +122,12 @@ class SimulateMqttDeviceCommand extends Command
     private function jsonPayload(array $payload): string
     {
         return json_encode($payload, JSON_THROW_ON_ERROR);
+    }
+
+    private function topicForDevice(string $topic, string $deviceCode): string
+    {
+        $defaultDeviceId = (string) config('mqtt.default_device_id', 'ESP32-01');
+
+        return str_replace("/{$defaultDeviceId}/", "/{$deviceCode}/", $topic);
     }
 }

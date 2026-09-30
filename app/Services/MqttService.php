@@ -13,20 +13,27 @@ class MqttService
     public function getClient(): MqttClient
     {
         if ($this->client === null) {
-            $host = config('mqtt.host', env('MQTT_HOST', '127.0.0.1'));
-            $port = (int) config('mqtt.port', env('MQTT_PORT', 1883));
-            $clientIdPrefix = config('mqtt.client_id', env('MQTT_CLIENT_ID', 'laravel_padibackend'));
+            $host = (string) config('mqtt.host', '127.0.0.1');
+            $port = (int) config('mqtt.port', 1883);
+            $clientIdPrefix = (string) config('mqtt.client_id', 'laravel_oryza_smart');
             $clientId = $clientIdPrefix.'_'.getmypid().'_'.bin2hex(random_bytes(3));
+
+            Log::info('Connecting to MQTT broker', [
+                'host' => $host,
+                'port' => $port,
+                'client_id' => $clientId,
+            ]);
 
             $this->client = new MqttClient($host, $port, $clientId);
 
             $settings = (new ConnectionSettings)
                 ->setKeepAliveInterval(60)
-                ->setLastWillTopic('rice-nursery/backend/status')
+                ->setReconnectAutomatically(true)
+                ->setLastWillTopic((string) config('mqtt.last_will_topic', 'oryza-smart/backend/status'))
                 ->setLastWillMessage('OFFLINE', 0);
 
-            $username = config('mqtt.username', env('MQTT_USERNAME'));
-            $password = config('mqtt.password', env('MQTT_PASSWORD'));
+            $username = config('mqtt.username');
+            $password = config('mqtt.password');
 
             if ($username) {
                 $settings->setUsername($username);
@@ -35,7 +42,13 @@ class MqttService
                 $settings->setPassword($password);
             }
 
-            $this->client->connect($settings, true);
+            $this->client->connect($settings, false);
+
+            Log::info('Connected to MQTT broker', [
+                'host' => $host,
+                'port' => $port,
+                'client_id' => $clientId,
+            ]);
         }
 
         return $this->client;
@@ -54,23 +67,37 @@ class MqttService
 
     public function publishFanCommand(string $deviceCode, string $command): void
     {
-        $topic = "rice-nursery/{$deviceCode}/actuator/fan/command";
+        $commandUpper = mb_strtoupper($command);
+        if (! in_array($commandUpper, ['ON', 'OFF', 'AUTO'], true)) {
+            Log::warning('Invalid MQTT fan command skipped', [
+                'device_id' => $deviceCode,
+                'command' => $command,
+            ]);
+
+            return;
+        }
+
+        $topic = $this->topicForDevice((string) config('mqtt.fan_command_topic', 'oryza-smart/ESP32-01/actuator/fan/command'), $deviceCode);
         $payload = json_encode([
             'device_id' => $deviceCode,
-            'command' => strtoupper($command),
+            'command' => $commandUpper,
             'timestamp' => now()->toIso8601String(),
-        ]);
+        ], JSON_THROW_ON_ERROR);
+
         $this->publish($topic, $payload);
     }
 
     public function publishFanMode(string $deviceCode, string $mode): void
     {
-        $topic = "rice-nursery/{$deviceCode}/actuator/fan/mode";
-        $payload = json_encode([
-            'device_id' => $deviceCode,
-            'mode' => strtoupper($mode),
-            'timestamp' => now()->toIso8601String(),
-        ]);
-        $this->publish($topic, $payload);
+        if (mb_strtoupper($mode) === 'AUTO') {
+            $this->publishFanCommand($deviceCode, 'AUTO');
+        }
+    }
+
+    private function topicForDevice(string $topic, string $deviceCode): string
+    {
+        $defaultDeviceId = (string) config('mqtt.default_device_id', 'ESP32-01');
+
+        return str_replace("/{$defaultDeviceId}/", "/{$deviceCode}/", $topic);
     }
 }

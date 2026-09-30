@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Device;
 use App\Models\SensorReading;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -16,16 +17,25 @@ class SensorService
 
     public function processPayload(array $payload): ?SensorReading
     {
+        $payload = $this->normalizePayload($payload);
         $deviceCode = $payload['device_id'] ?? null;
+
         $validator = Validator::make($payload, [
             'device_id' => ['required', 'string', 'max:100'],
+            'uptime_s' => ['nullable', 'integer', 'min:0'],
             'temperature' => ['required', 'numeric'],
             'humidity' => ['required', 'numeric'],
             'nitrogen' => ['required', 'numeric'],
             'phosphorus' => ['required', 'numeric'],
             'potassium' => ['required', 'numeric'],
-            'light' => ['required', 'numeric'],
-            'ultrasonic' => ['required', 'numeric'],
+            'light' => ['nullable', 'numeric'],
+            'light_percent' => ['nullable', 'numeric'],
+            'uv_index' => ['nullable', 'numeric'],
+            'ultrasonic' => ['nullable', 'numeric'],
+            'distance_cm' => ['nullable', 'numeric'],
+            'level_percent' => ['nullable', 'numeric'],
+            'fan_state' => ['nullable', 'string', 'max:50'],
+            'fan_mode' => ['nullable', 'string', 'max:50'],
             'recorded_at' => ['nullable', 'date'],
         ]);
 
@@ -55,13 +65,20 @@ class SensorService
 
         $reading = SensorReading::create([
             'device_id' => $device->id,
+            'uptime_s' => isset($payload['uptime_s']) ? (int) $payload['uptime_s'] : null,
             'temperature' => (float) $payload['temperature'],
             'humidity' => (float) $payload['humidity'],
             'nitrogen' => (float) $payload['nitrogen'],
             'phosphorus' => (float) $payload['phosphorus'],
             'potassium' => (float) $payload['potassium'],
-            'light' => (float) $payload['light'],
-            'ultrasonic' => (float) $payload['ultrasonic'],
+            'light' => isset($payload['light']) ? (float) $payload['light'] : null,
+            'light_percent' => isset($payload['light_percent']) ? (float) $payload['light_percent'] : null,
+            'uv_index' => isset($payload['uv_index']) ? (float) $payload['uv_index'] : null,
+            'ultrasonic' => isset($payload['ultrasonic']) ? (float) $payload['ultrasonic'] : null,
+            'distance_cm' => isset($payload['distance_cm']) ? (float) $payload['distance_cm'] : null,
+            'level_percent' => isset($payload['level_percent']) ? (float) $payload['level_percent'] : null,
+            'fan_state' => $payload['fan_state'] ?? null,
+            'fan_mode' => $payload['fan_mode'] ?? null,
             'recorded_at' => isset($payload['recorded_at']) ? Carbon::parse($payload['recorded_at']) : now(),
         ]);
 
@@ -92,7 +109,13 @@ class SensorService
             'phosphorus' => $latest->phosphorus,
             'potassium' => $latest->potassium,
             'light' => $latest->light,
+            'light_percent' => $latest->light_percent,
+            'uv_index' => $latest->uv_index,
             'ultrasonic' => $latest->ultrasonic,
+            'distance_cm' => $latest->distance_cm,
+            'level_percent' => $latest->level_percent,
+            'fan_state' => $latest->fan_state,
+            'fan_mode' => $latest->fan_mode,
             'recorded_at' => $latest->recorded_at,
         ];
     }
@@ -136,8 +159,46 @@ class SensorService
                 'phosphorus' => $r->phosphorus,
                 'potassium' => $r->potassium,
                 'light' => $r->light,
+                'light_percent' => $r->light_percent,
+                'uv_index' => $r->uv_index,
                 'ultrasonic' => $r->ultrasonic,
+                'distance_cm' => $r->distance_cm,
+                'level_percent' => $r->level_percent,
+                'fan_state' => $r->fan_state,
+                'fan_mode' => $r->fan_mode,
             ]),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function normalizePayload(array $payload): array
+    {
+        $lightPercent = Arr::get($payload, 'light.percent', Arr::get($payload, 'light_percent'));
+        $light = Arr::get($payload, 'light.value', Arr::get($payload, 'light', $lightPercent));
+        $distanceCm = Arr::get($payload, 'ultrasonic.distance_cm', Arr::get($payload, 'distance_cm'));
+        $ultrasonic = Arr::get($payload, 'ultrasonic.value', Arr::get($payload, 'ultrasonic', $distanceCm));
+
+        return [
+            ...$payload,
+            'device_id' => Arr::get($payload, 'device_id', Arr::get($payload, 'deviceId')),
+            'uptime_s' => Arr::get($payload, 'uptime_s'),
+            'temperature' => Arr::get($payload, 'temperature'),
+            'humidity' => Arr::get($payload, 'humidity'),
+            'nitrogen' => Arr::get($payload, 'npk.n', Arr::get($payload, 'nitrogen')),
+            'phosphorus' => Arr::get($payload, 'npk.p', Arr::get($payload, 'phosphorus')),
+            'potassium' => Arr::get($payload, 'npk.k', Arr::get($payload, 'potassium')),
+            'light' => is_array($light) ? $lightPercent : $light,
+            'light_percent' => $lightPercent,
+            'uv_index' => Arr::get($payload, 'light.uv_index', Arr::get($payload, 'uv_index')),
+            'ultrasonic' => is_array($ultrasonic) ? $distanceCm : $ultrasonic,
+            'distance_cm' => $distanceCm,
+            'level_percent' => Arr::get($payload, 'ultrasonic.level_percent', Arr::get($payload, 'level_percent')),
+            'fan_state' => Arr::get($payload, 'fan.state', Arr::get($payload, 'fan_state')),
+            'fan_mode' => Arr::get($payload, 'fan.mode', Arr::get($payload, 'fan_mode')),
+            'recorded_at' => Arr::get($payload, 'recorded_at'),
         ];
     }
 }

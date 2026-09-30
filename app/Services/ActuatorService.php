@@ -38,9 +38,10 @@ class ActuatorService
             'new_status' => $commandUpper,
         ]);
 
-        $deviceCode = $actuator->device->device_code ?? 'ESP32-01';
-        $this->mqttService->publishFanCommand($deviceCode, $commandUpper);
-        $this->mqttService->publishFanMode($deviceCode, $modeUpper);
+        $deviceCode = $actuator->device->device_code ?? (string) config('mqtt.default_device_id', 'ESP32-01');
+        $mqttCommand = $modeUpper === 'AUTO' ? 'AUTO' : $commandUpper;
+
+        $this->mqttService->publishFanCommand($deviceCode, $mqttCommand);
 
         return true;
     }
