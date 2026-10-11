@@ -20,7 +20,7 @@ class ActuatorController extends Controller
     {
         $validated = $request->validate([
             'device_id' => ['required', 'string', 'max:100'],
-            'command' => ['required', 'string', 'in:ON,OFF,on,off'],
+            'command' => ['required', 'string', 'in:ON,OFF,AUTO,on,off,auto'],
             'mode' => ['nullable', 'string', 'in:AUTO,MANUAL,auto,manual'],
         ]);
 
@@ -41,8 +41,8 @@ class ActuatorController extends Controller
             ['name' => 'Kipas Ventilasi', 'mode' => strtoupper($validated['mode'] ?? 'MANUAL'), 'status' => 'OFF']
         );
 
-        $mode = strtoupper($validated['mode'] ?? 'MANUAL');
         $command = strtoupper($validated['command']);
+        $mode = strtoupper($validated['mode'] ?? ($command === 'AUTO' ? 'AUTO' : 'MANUAL'));
 
         $user = $request->user();
         $source = $user ? 'USER' : 'SYSTEM';

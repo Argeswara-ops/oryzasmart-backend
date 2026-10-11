@@ -18,7 +18,7 @@ class SimulateMqttDeviceCommandTest extends TestCase
                 ->withArgs(function (string $topic, string $message): bool {
                     $payload = json_decode($message, true);
 
-                    return $topic === 'rice-nursery/ESP32-01/status'
+                    return $topic === 'oryza-smart/ESP32-01/status'
                         && $payload['status'] === 'ONLINE';
                 });
 
@@ -27,10 +27,13 @@ class SimulateMqttDeviceCommandTest extends TestCase
                 ->withArgs(function (string $topic, string $message): bool {
                     $payload = json_decode($message, true);
 
-                    return $topic === 'rice-nursery/ESP32-01/sensors'
+                    return $topic === 'oryza-smart/ESP32-01/sensors'
                         && $payload['device_id'] === 'ESP32-01'
                         && (float) $payload['temperature'] === 34.8
-                        && (float) $payload['humidity'] === 91.0;
+                        && (float) $payload['humidity'] === 91.0
+                        && (float) $payload['npk']['n'] === 23.0
+                        && (float) $payload['light']['uv_index'] === 9.1
+                        && (float) $payload['ultrasonic']['distance_cm'] === 3.0;
                 });
 
             $mock->shouldReceive('publish')
@@ -38,8 +41,9 @@ class SimulateMqttDeviceCommandTest extends TestCase
                 ->withArgs(function (string $topic, string $message): bool {
                     $payload = json_decode($message, true);
 
-                    return $topic === 'rice-nursery/ESP32-01/actuator/fan/status'
-                        && $payload['status'] === 'ON';
+                    return $topic === 'oryza-smart/ESP32-01/actuator/fan/status'
+                        && $payload['state'] === 'ON'
+                        && $payload['mode'] === 'AUTO';
                 });
         });
 

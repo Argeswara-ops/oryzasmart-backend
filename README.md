@@ -1,58 +1,198 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Oryza Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Oryza Backend adalah REST API Laravel untuk sistem monitoring dan kontrol pembibitan padi. Backend ini menghubungkan aplikasi Flutter, perangkat IoT berbasis MQTT, dan layanan Computer Vision untuk memantau sensor, kamera, deteksi hama/penyakit, alert, rekomendasi, serta kontrol aktuator.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Autentikasi API menggunakan Laravel Sanctum.
+- Dashboard kondisi pembibitan berdasarkan sensor, kamera, alert, rekomendasi, dan status aktuator.
+- Ingestion data sensor dari perangkat IoT/MQTT.
+- Integrasi MQTT untuk status perangkat dan kontrol kipas.
+- Endpoint callback Vision Service untuk menyimpan hasil deteksi.
+- Endpoint prediksi padi yang meneruskan upload gambar dari Flutter ke Oryza Vision API.
+- Alert dan rekomendasi otomatis melalui `SmartDecisionService`.
+- Simulator data sensor, deteksi vision, dan MQTT untuk development tanpa perangkat fisik.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3+
+- Laravel 13
+- Laravel Sanctum
+- MySQL
+- PHPUnit 12
+- php-mqtt/client
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Instalasi
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Jalankan server lokal:
 
-## Contributing
+```bash
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Konfigurasi Environment
 
-## Code of Conduct
+Konfigurasi database:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=padibackend
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-## Security Vulnerabilities
+Konfigurasi MQTT:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+MQTT_HOST=127.0.0.1
+MQTT_PORT=1883
+MQTT_CLIENT_ID=laravel_padibackend
+MQTT_USERNAME=
+MQTT_PASSWORD=
+MQTT_DEFAULT_DEVICE_ID=ESP32-01
+MQTT_SENSOR_TOPIC=oryza-smart/ESP32-01/sensors
+MQTT_STATUS_TOPIC=oryza-smart/ESP32-01/status
+MQTT_FAN_STATUS_TOPIC=oryza-smart/ESP32-01/actuator/fan/status
+MQTT_FAN_COMMAND_TOPIC=oryza-smart/ESP32-01/actuator/fan/command
+MQTT_FAN_COMMAND_PAYLOAD=wokwi_json
+MQTT_LAST_WILL_TOPIC=oryza-smart/backend/status
+```
 
-## License
+Konfigurasi Vision Service:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+VISION_API_KEY=
+ORYZA_VISION_URL=http://127.0.0.1:8000
+ORYZA_VISION_API_KEY=
+```
+
+`VISION_API_KEY` dipakai oleh endpoint callback Vision Service ke Laravel. `ORYZA_VISION_URL` dan `ORYZA_VISION_API_KEY` dipakai saat Laravel meneruskan gambar dari Flutter ke Oryza Vision API.
+
+## Endpoint Utama
+
+Endpoint publik:
+
+```text
+POST /api/login
+POST /api/vision/detections
+```
+
+Endpoint authenticated:
+
+```text
+POST /api/logout
+GET  /api/user
+GET  /api/dashboard
+GET  /api/devices
+GET  /api/sensors/latest
+GET  /api/sensors/history
+GET  /api/cameras
+GET  /api/detections
+GET  /api/alerts
+GET  /api/recommendations
+POST /api/paddy/predict
+POST /api/paddy/predict/realtime
+POST /api/actuators/fan/control
+GET  /api/actuators/fan/status
+```
+
+Dokumentasi kontrak Flutter tersedia di `docs/API_ENDPOINTS_FLUTTER.md`. Panduan integrasi Oryza Vision tersedia di `docs/laravel-integration.md`.
+
+## Integrasi Oryza Vision
+
+Flutter mengirim gambar ke Laravel:
+
+```text
+POST /api/paddy/predict
+POST /api/paddy/predict/realtime
+```
+
+Laravel memvalidasi field `image`, lalu meneruskan file ke Oryza Vision API sebagai multipart field `file` dengan header `X-API-Key`.
+
+Vision Service juga dapat mengirim hasil deteksi langsung ke Laravel:
+
+```text
+POST /api/vision/detections
+Header: X-Vision-Key: {VISION_API_KEY}
+```
+
+Payload deteksi:
+
+```json
+{
+  "camera_id": "CAM-01",
+  "detection_type": "DISEASE",
+  "class_name": "rice_blast",
+  "confidence": 0.92,
+  "image_path": "detections/cam01-001.jpg",
+  "detected_at": "2026-09-24 11:40:21"
+}
+```
+
+## MQTT
+
+Listener MQTT:
+
+```bash
+php artisan mqtt:listen
+```
+
+Simulator MQTT:
+
+```bash
+php artisan mqtt:simulate --count=5
+```
+
+Simulator data nursery:
+
+```bash
+php artisan nursery:simulate --sensor --detection --count=5 --scenario=mixed
+```
+
+## Testing dan Formatting
+
+Jalankan seluruh test:
+
+```bash
+php artisan test --compact
+```
+
+Jalankan test tertentu:
+
+```bash
+php artisan test tests/Feature/SmartRiceNurseryApiTest.php --compact
+```
+
+Format kode PHP:
+
+```bash
+vendor/bin/pint --dirty --format agent
+```
+
+## Deployment
+
+Pastikan environment production mengisi secret berikut:
+
+```env
+APP_KEY=
+DB_*
+VISION_API_KEY=
+ORYZA_VISION_URL=
+ORYZA_VISION_API_KEY=
+MQTT_*
+```
+
+Jalankan migration pada environment target:
+
+```bash
+php artisan migrate --force
+```

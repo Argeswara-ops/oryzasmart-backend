@@ -22,25 +22,26 @@ class ActuatorService
         $previousStatus = $actuator->status;
         $commandUpper = strtoupper($command);
         $modeUpper = strtoupper($mode);
+        $newStatus = $commandUpper === 'AUTO' ? $previousStatus : $commandUpper;
+        $newMode = $commandUpper === 'AUTO' ? 'AUTO' : $modeUpper;
 
         $actuator->update([
-            'status' => $commandUpper,
-            'mode' => $modeUpper,
+            'status' => $newStatus,
+            'mode' => $newMode,
         ]);
 
         ActuatorLog::create([
             'actuator_id' => $actuator->id,
             'user_id' => $user?->id,
             'command' => $commandUpper,
-            'mode' => $modeUpper,
+            'mode' => $newMode,
             'source' => $source,
             'previous_status' => $previousStatus,
-            'new_status' => $commandUpper,
+            'new_status' => $newStatus,
         ]);
 
-        $deviceCode = $actuator->device->device_code ?? 'ESP32-01';
-        $this->mqttService->publishFanCommand($deviceCode, $commandUpper);
-        $this->mqttService->publishFanMode($deviceCode, $modeUpper);
+        $deviceCode = $actuator->device->device_code ?? (string) config('mqtt.default_device_id', 'ESP32-01');
+        $this->mqttService->publishFanCommand($deviceCode, $commandUpper, $newMode);
 
         return true;
     }

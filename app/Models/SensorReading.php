@@ -12,24 +12,36 @@ class SensorReading extends Model
 
     protected $fillable = [
         'device_id',
+        'uptime_s',
         'temperature',
         'humidity',
         'nitrogen',
         'phosphorus',
         'potassium',
         'light',
+        'light_percent',
+        'uv_index',
         'ultrasonic',
+        'distance_cm',
+        'level_percent',
+        'fan_state',
+        'fan_mode',
         'recorded_at',
     ];
 
     protected $casts = [
+        'uptime_s' => 'integer',
         'temperature' => 'float',
         'humidity' => 'float',
         'nitrogen' => 'float',
         'phosphorus' => 'float',
         'potassium' => 'float',
         'light' => 'float',
+        'light_percent' => 'float',
+        'uv_index' => 'float',
         'ultrasonic' => 'float',
+        'distance_cm' => 'float',
+        'level_percent' => 'float',
         'recorded_at' => 'datetime',
     ];
 
