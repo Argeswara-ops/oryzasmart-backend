@@ -6,6 +6,11 @@ return [
         'api_key' => env('VISION_API_KEY'),
     ],
 
+    'oryza_vision' => [
+        'url' => env('ORYZA_VISION_URL', 'http://127.0.0.1:8000'),
+        'api_key' => env('ORYZA_VISION_API_KEY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

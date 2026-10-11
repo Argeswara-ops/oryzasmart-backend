@@ -23,7 +23,8 @@ class MqttService
             $settings = (new ConnectionSettings)
                 ->setKeepAliveInterval(60)
                 ->setLastWillTopic('rice-nursery/backend/status')
-                ->setLastWillMessage('OFFLINE', 0);
+                ->setLastWillMessage('OFFLINE')
+                ->setLastWillQualityOfService(0);
 
             $username = config('mqtt.username', env('MQTT_USERNAME'));
             $password = config('mqtt.password', env('MQTT_PASSWORD'));

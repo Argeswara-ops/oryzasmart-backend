@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CameraController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DetectionController;
 use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\PaddyPredictionController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\SensorController;
 use App\Http\Controllers\Api\ThresholdController;
@@ -49,6 +50,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/detections', [DetectionController::class, 'index']);
     Route::get('/detections/latest', [DetectionController::class, 'latest']);
     Route::get('/detections/{id}', [DetectionController::class, 'show']);
+
+    // Paddy Predictions
+    Route::post('/paddy/predict', [PaddyPredictionController::class, 'store']);
+    Route::post('/paddy/predict/realtime', [PaddyPredictionController::class, 'realtime']);
 
     // Alerts
     Route::get('/alerts', [AlertController::class, 'index']);

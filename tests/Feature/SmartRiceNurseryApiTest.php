@@ -8,6 +8,9 @@ use App\Models\SensorReading;
 use App\Models\SensorThreshold;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class SmartRiceNurseryApiTest extends TestCase
@@ -185,5 +188,99 @@ class SmartRiceNurseryApiTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
+    }
+
+    public function test_paddy_prediction_forwards_image_to_oryza_vision(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'vision.test/predict' => Http::response([
+                'success' => true,
+                'prediction' => [
+                    'class_id' => 3,
+                    'class' => 'blast',
+                    'display_name' => 'Blast',
+                    'confidence' => 92.74,
+                    'status' => 'high_confidence',
+                ],
+            ]),
+        ]);
+        config([
+            'services.oryza_vision.url' => 'http://vision.test',
+            'services.oryza_vision.api_key' => 'secret-key',
+        ]);
+
+        $response = $this->actingAs($this->user)->post('/api/paddy/predict', [
+            'image' => UploadedFile::fake()->image('paddy.jpg', 224, 224)->size(256),
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('prediction.class', 'blast');
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'http://vision.test/predict'
+            && $request->method() === 'POST'
+            && $request->hasHeader('X-API-Key', 'secret-key')
+            && $request->hasFile('file', filename: 'paddy.jpg'));
+    }
+
+    public function test_realtime_paddy_prediction_forwards_stream_id_to_oryza_vision(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'vision.test/predict/realtime' => Http::response([
+                'success' => true,
+                'prediction' => [
+                    'class' => 'blast',
+                    'confidence' => 88.5,
+                ],
+                'stable_prediction' => null,
+            ]),
+        ]);
+        config([
+            'services.oryza_vision.url' => 'http://vision.test',
+            'services.oryza_vision.api_key' => 'secret-key',
+        ]);
+
+        $response = $this->actingAs($this->user)->post('/api/paddy/predict/realtime', [
+            'image' => UploadedFile::fake()->image('frame.png', 224, 224)->size(128),
+            'stream_id' => 'camera-page-1',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('prediction.class', 'blast')
+            ->assertJsonPath('stable_prediction', null);
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'http://vision.test/predict/realtime'
+            && $request->method() === 'POST'
+            && $request->hasHeader('X-API-Key', 'secret-key')
+            && $request->hasFile('file', filename: 'frame.png')
+            && str_contains($request->body(), 'name="stream_id"')
+            && str_contains($request->body(), 'camera-page-1'));
+    }
+
+    public function test_paddy_prediction_returns_error_when_oryza_vision_fails(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'vision.test/predict' => Http::response([
+                'success' => false,
+                'message' => 'Invalid image',
+            ], 422),
+        ]);
+        config([
+            'services.oryza_vision.url' => 'http://vision.test',
+            'services.oryza_vision.api_key' => 'secret-key',
+        ]);
+
+        $response = $this->actingAs($this->user)->post('/api/paddy/predict', [
+            'image' => UploadedFile::fake()->image('bad.jpg', 224, 224)->size(256),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Vision prediction failed')
+            ->assertJsonPath('error.message', 'Invalid image');
     }
 }
