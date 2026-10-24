@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PaddyPredictionController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\SensorController;
 use App\Http\Controllers\Api\ThresholdController;
+use App\Http\Controllers\Api\VisionScanController;
 use Illuminate\Support\Facades\Route;
 
 // Public Endpoints
@@ -50,6 +51,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/detections', [DetectionController::class, 'index']);
     Route::get('/detections/latest', [DetectionController::class, 'latest']);
     Route::get('/detections/{id}', [DetectionController::class, 'show']);
+
+    // Manual Oryza Vision Scans
+    Route::get('/vision/scans', [VisionScanController::class, 'index']);
+    Route::post('/vision/scans', [VisionScanController::class, 'store']);
+    Route::get('/vision/scans/{visionScan}', [VisionScanController::class, 'show']);
 
     // Paddy Predictions
     Route::post('/paddy/predict', [PaddyPredictionController::class, 'store']);
