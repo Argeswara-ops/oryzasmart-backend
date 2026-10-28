@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Actuator;
 use App\Models\Device;
 use App\Models\SensorReading;
 use Illuminate\Support\Arr;
@@ -83,13 +84,18 @@ class SensorService
         ]);
 
         $this->smartDecisionService->evaluate();
+        $this->syncFanState($device, $payload);
 
         return $reading;
     }
 
-    public function getLatest(): array
+    public function getLatest(?Device $device = null): array
     {
-        $latest = SensorReading::latest('id')->first();
+        $latest = SensorReading::query()
+            ->when($device, fn ($query) => $query->whereBelongsTo($device))
+            ->latest('recorded_at')
+            ->latest('id')
+            ->first();
         if (! $latest) {
             return [
                 'temperature' => 0,
@@ -114,6 +120,11 @@ class SensorService
             'ultrasonic' => $latest->ultrasonic,
             'distance_cm' => $latest->distance_cm,
             'level_percent' => $latest->level_percent,
+            'water_level_percent' => $latest->level_percent,
+            'water_level' => [
+                'distance_cm' => $latest->distance_cm,
+                'percent' => $latest->level_percent,
+            ],
             'fan_state' => $latest->fan_state,
             'fan_mode' => $latest->fan_mode,
             'recorded_at' => $latest->recorded_at,
@@ -200,5 +211,31 @@ class SensorService
             'fan_mode' => Arr::get($payload, 'fan.mode', Arr::get($payload, 'fan_mode')),
             'recorded_at' => Arr::get($payload, 'recorded_at'),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function syncFanState(Device $device, array $payload): void
+    {
+        $fanState = mb_strtoupper((string) ($payload['fan_state'] ?? ''));
+        $fanMode = mb_strtoupper((string) ($payload['fan_mode'] ?? ''));
+
+        if (! in_array($fanState, ['ON', 'OFF'], true)) {
+            return;
+        }
+
+        if (! in_array($fanMode, ['AUTO', 'MANUAL'], true)) {
+            $fanMode = 'AUTO';
+        }
+
+        Actuator::updateOrCreate(
+            ['device_id' => $device->id, 'type' => 'fan'],
+            [
+                'name' => 'Kipas Ventilasi',
+                'status' => $fanState,
+                'mode' => $fanMode,
+            ],
+        );
     }
 }

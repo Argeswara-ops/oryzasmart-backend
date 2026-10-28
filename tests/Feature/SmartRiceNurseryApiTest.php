@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Camera;
+use App\Models\Actuator;
 use App\Models\Device;
 use App\Models\SensorReading;
 use App\Models\SensorThreshold;
 use App\Models\User;
+use App\Services\MqttService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\UploadedFile;
@@ -60,28 +61,6 @@ class SmartRiceNurseryApiTest extends TestCase
             ->assertJsonPath('success', true);
     }
 
-    public function test_vision_detection_endpoint(): void
-    {
-        $payload = [
-            'camera_id' => 'CAM-01',
-            'detection_type' => 'disease',
-            'class_name' => 'rice_blast',
-            'confidence' => 0.92,
-            'image_path' => 'detections/cam01-001.jpg',
-            'detected_at' => now()->toDateTimeString(),
-        ];
-
-        $response = $this->postJson('/api/vision/detections', $payload);
-
-        $response->assertStatus(201)
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.class_name', 'rice_blast');
-
-        $this->assertDatabaseHas('detections', [
-            'class_name' => 'rice_blast',
-        ]);
-    }
-
     public function test_dashboard_and_sensors_authenticated(): void
     {
         $device = Device::create([
@@ -99,13 +78,19 @@ class SmartRiceNurseryApiTest extends TestCase
             'potassium' => 35.0,
             'light' => 700.0,
             'ultrasonic' => 15.0,
+            'light_percent' => 70.0,
+            'uv_index' => 4.0,
+            'distance_cm' => 15.0,
+            'level_percent' => 65.0,
             'recorded_at' => now(),
         ]);
 
         $response = $this->actingAs($this->user)->getJson('/api/dashboard');
         $response->assertStatus(200)
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.sensors.temperature', 32.5);
+            ->assertJsonPath('data.device.is_online', true)
+            ->assertJsonPath('data.sensors.temperature', 32.5)
+            ->assertJsonPath('data.sensors.water_level_percent', 65);
 
         // Sensors latest
         $this->actingAs($this->user)->getJson('/api/sensors/latest')
@@ -120,6 +105,11 @@ class SmartRiceNurseryApiTest extends TestCase
 
     public function test_actuator_fan_control(): void
     {
+        $this->mock(MqttService::class)
+            ->shouldReceive('publishFanCommand')
+            ->once()
+            ->with('ESP32-01', 'ON', 'MANUAL');
+
         $device = Device::create([
             'device_code' => 'ESP32-01',
             'name' => 'ESP32 Utama',
@@ -146,13 +136,44 @@ class SmartRiceNurseryApiTest extends TestCase
         ]);
     }
 
-    public function test_devices_cameras_alerts_recommendations_index(): void
+    public function test_device_index_returns_real_esp_state_without_camera_routes(): void
     {
-        Device::create(['device_code' => 'ESP32-01', 'name' => 'ESP32 Utama', 'status' => 'ONLINE']);
-        Camera::create(['camera_code' => 'CAM-01', 'name' => 'CAM Utama', 'status' => 'ONLINE']);
+        $device = Device::create([
+            'device_code' => 'ESP32-01',
+            'name' => 'ESP32 Utama',
+            'type' => 'esp32',
+            'status' => 'ONLINE',
+            'last_seen' => now(),
+        ]);
+        Actuator::create([
+            'device_id' => $device->id,
+            'name' => 'Kipas',
+            'type' => 'fan',
+            'status' => 'ON',
+            'mode' => 'AUTO',
+        ]);
+        SensorReading::create([
+            'device_id' => $device->id,
+            'temperature' => 28.0,
+            'humidity' => 75.0,
+            'nitrogen' => 40.0,
+            'phosphorus' => 25.0,
+            'potassium' => 35.0,
+            'level_percent' => 72.0,
+            'recorded_at' => now(),
+        ]);
 
-        $this->actingAs($this->user)->getJson('/api/devices')->assertStatus(200)->assertJsonCount(1, 'data');
-        $this->actingAs($this->user)->getJson('/api/cameras')->assertStatus(200)->assertJsonCount(1, 'data');
+        $this->actingAs($this->user)
+            ->getJson('/api/devices')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.device_code', 'ESP32-01')
+            ->assertJsonPath('data.0.is_online', true)
+            ->assertJsonPath('data.0.fan.is_on', true)
+            ->assertJsonPath('data.0.latest_sensor.water_level_percent', 72);
+
+        $this->actingAs($this->user)->getJson('/api/cameras')->assertNotFound();
+        $this->actingAs($this->user)->getJson('/api/detections')->assertNotFound();
         $this->actingAs($this->user)->getJson('/api/alerts')->assertStatus(200);
         $this->actingAs($this->user)->getJson('/api/recommendations')->assertStatus(200);
     }
@@ -176,18 +197,21 @@ class SmartRiceNurseryApiTest extends TestCase
             'sensor_type' => 'temperature',
             'max_value' => 31,
         ]);
-    }
 
-    public function test_vision_detection_rejects_invalid_confidence(): void
-    {
-        $response = $this->postJson('/api/vision/detections', [
-            'camera_id' => 'CAM-01',
-            'detection_type' => 'disease',
-            'class_name' => 'rice_blast',
-            'confidence' => 1.5,
-        ]);
+        $this->actingAs($this->user)
+            ->putJson('/api/thresholds/water_level', [
+                'min_value' => 25,
+                'max_value' => 85,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.sensor_type', 'water_level');
 
-        $response->assertUnprocessable();
+        $this->actingAs($this->user)
+            ->putJson('/api/thresholds/camera', [
+                'min_value' => 0,
+                'max_value' => 1,
+            ])
+            ->assertUnprocessable();
     }
 
     public function test_paddy_prediction_forwards_image_to_oryza_vision(): void

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Device extends Model
 {
@@ -28,9 +29,19 @@ class Device extends Model
         return $this->hasMany(SensorReading::class);
     }
 
+    public function latestSensorReading(): HasOne
+    {
+        return $this->hasOne(SensorReading::class)->latestOfMany('recorded_at');
+    }
+
     public function actuators(): HasMany
     {
         return $this->hasMany(Actuator::class);
+    }
+
+    public function fan(): HasOne
+    {
+        return $this->hasOne(Actuator::class)->where('type', 'fan');
     }
 
     public function alerts(): HasMany

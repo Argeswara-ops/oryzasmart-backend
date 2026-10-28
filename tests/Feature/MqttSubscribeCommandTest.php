@@ -133,6 +133,31 @@ class MqttSubscribeCommandTest extends TestCase
             'fan_state' => 'ON',
             'fan_mode' => 'AUTO',
         ]);
+        $this->assertDatabaseHas('actuators', [
+            'device_id' => Device::where('device_code', 'ESP32-01')->value('id'),
+            'type' => 'fan',
+            'status' => 'ON',
+            'mode' => 'AUTO',
+        ]);
+    }
+
+    public function test_device_on_and_off_payloads_are_normalized_to_connection_status(): void
+    {
+        $command = app(MqttListenCommand::class);
+
+        $onlineDevice = $command->processStatusMessage(
+            'oryza-smart/ESP32-01/status',
+            json_encode(['status' => 'ON'], JSON_THROW_ON_ERROR),
+        );
+
+        $this->assertSame('ONLINE', $onlineDevice?->status);
+
+        $offlineDevice = $command->processStatusMessage(
+            'oryza-smart/ESP32-01/status',
+            json_encode(['status' => 'OFF'], JSON_THROW_ON_ERROR),
+        );
+
+        $this->assertSame('OFFLINE', $offlineDevice?->status);
     }
 
     public function test_invalid_json_payload_is_logged_and_ignored(): void

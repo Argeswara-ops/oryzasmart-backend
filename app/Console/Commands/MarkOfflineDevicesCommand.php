@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Camera;
 use App\Models\Device;
 use App\Services\AlertService;
 use Illuminate\Console\Command;
@@ -11,7 +10,7 @@ class MarkOfflineDevicesCommand extends Command
 {
     protected $signature = 'devices:mark-offline {--minutes=5 : Minutes without heartbeat before a device is offline}';
 
-    protected $description = 'Mark devices and cameras without a recent heartbeat as offline';
+    protected $description = 'Mark ESP devices without a recent heartbeat as offline';
 
     public function handle(AlertService $alertService): int
     {
@@ -26,17 +25,7 @@ class MarkOfflineDevicesCommand extends Command
             $alertService->createDeviceOfflineAlert($device);
         }
 
-        $cameras = Camera::whereIn('status', ['ONLINE', 'ERROR'])
-            ->whereNotNull('last_seen')
-            ->where('last_seen', '<', $cutoff)
-            ->get();
-
-        foreach ($cameras as $camera) {
-            $camera->update(['status' => 'OFFLINE']);
-            $alertService->createCameraOfflineAlert($camera);
-        }
-
-        $this->info(sprintf('Marked %d devices and %d cameras offline.', $devices->count(), $cameras->count()));
+        $this->info(sprintf('Marked %d ESP devices offline.', $devices->count()));
 
         return self::SUCCESS;
     }

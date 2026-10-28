@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Actuator;
 use App\Models\Alert;
-use App\Models\Detection;
 use App\Models\Device;
 use App\Services\SensorService;
 use App\Services\SmartDecisionService;
@@ -22,22 +20,18 @@ class DashboardController extends Controller
     {
         $systemStatus = $this->smartDecisionService->evaluate();
 
-        $latestDevice = Device::latest('last_seen')->first();
+        $latestDevice = Device::query()
+            ->where('type', 'esp32')
+            ->with('fan')
+            ->latest('last_seen')
+            ->first();
         $deviceStatus = $latestDevice ? $latestDevice->status : 'OFFLINE';
 
-        $sensorsData = $this->sensorService->getLatest();
-
-        $latestDetection = Detection::latest('detected_at')->first();
-        $detectionData = $latestDetection ? [
-            'type' => $latestDetection->detection_type,
-            'class' => $latestDetection->class_name,
-            'confidence' => $latestDetection->confidence,
-            'detected_at' => $latestDetection->detected_at,
-        ] : null;
-
-        $fan = Actuator::where('type', 'fan')->first();
+        $sensorsData = $this->sensorService->getLatest($latestDevice);
+        $fan = $latestDevice?->fan;
         $fanData = [
             'status' => $fan ? $fan->status : 'OFF',
+            'is_on' => $fan?->status === 'ON',
             'mode' => $fan ? $fan->mode : 'AUTO',
         ];
 
@@ -49,8 +43,13 @@ class DashboardController extends Controller
             'data' => [
                 'system_status' => $systemStatus,
                 'device_status' => $deviceStatus,
+                'device' => $latestDevice ? [
+                    'device_code' => $latestDevice->device_code,
+                    'status' => $latestDevice->status,
+                    'is_online' => $latestDevice->status === 'ONLINE',
+                    'last_seen' => $latestDevice->last_seen,
+                ] : null,
                 'sensors' => $sensorsData,
-                'latest_detection' => $detectionData,
                 'fan' => $fanData,
                 'unread_alerts' => $unreadAlerts,
             ],

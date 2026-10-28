@@ -3,9 +3,7 @@
 use App\Http\Controllers\Api\ActuatorController;
 use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CameraController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\DetectionController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\PaddyPredictionController;
 use App\Http\Controllers\Api\RecommendationController;
@@ -16,9 +14,6 @@ use Illuminate\Support\Facades\Route;
 
 // Public Endpoints
 Route::middleware('throttle:login')->post('/login', [AuthController::class, 'login']);
-
-// Vision Service Endpoint (External Vision Python Service)
-Route::middleware(['vision.key', 'throttle:vision'])->post('/vision/detections', [DetectionController::class, 'store']);
 
 // Authenticated Endpoints
 Route::middleware('auth:sanctum')->group(function () {
@@ -41,16 +36,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Thresholds
     Route::get('/thresholds', [ThresholdController::class, 'index']);
     Route::middleware('operator')->put('/thresholds/{sensorType}', [ThresholdController::class, 'update']);
-
-    // Cameras
-    Route::get('/cameras', [CameraController::class, 'index']);
-    Route::get('/cameras/{id}', [CameraController::class, 'show']);
-    Route::get('/cameras/{id}/status', [CameraController::class, 'status']);
-
-    // Detections
-    Route::get('/detections', [DetectionController::class, 'index']);
-    Route::get('/detections/latest', [DetectionController::class, 'latest']);
-    Route::get('/detections/{id}', [DetectionController::class, 'show']);
 
     // Manual Oryza Vision Scans
     Route::get('/vision/scans', [VisionScanController::class, 'index']);

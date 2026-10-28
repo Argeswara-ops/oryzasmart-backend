@@ -114,7 +114,18 @@ class MqttListenCommand extends Command
         }
 
         $deviceCode = $this->resolveDeviceId($topic, $payload);
-        $status = mb_strtoupper((string) (Arr::get($payload, 'status') ?? Arr::get($payload, 'state') ?? 'ONLINE'));
+        $status = $this->normalizeDeviceStatus(
+            (string) (Arr::get($payload, 'status') ?? Arr::get($payload, 'state') ?? 'ONLINE')
+        );
+
+        if ($status === null) {
+            Log::warning('Invalid MQTT device status ignored', [
+                'topic' => $topic,
+                'payload' => $payload,
+            ]);
+
+            return null;
+        }
 
         Log::info('MQTT device status received', [
             'topic' => $topic,
@@ -143,6 +154,15 @@ class MqttListenCommand extends Command
         $deviceCode = $this->resolveDeviceId($topic, $payload);
         $status = mb_strtoupper((string) (Arr::get($payload, 'state') ?? Arr::get($payload, 'status') ?? 'OFF'));
         $mode = mb_strtoupper((string) (Arr::get($payload, 'mode') ?? 'AUTO'));
+
+        if (! in_array($status, ['ON', 'OFF'], true) || ! in_array($mode, ['AUTO', 'MANUAL'], true)) {
+            Log::warning('Invalid MQTT fan status ignored', [
+                'topic' => $topic,
+                'payload' => $payload,
+            ]);
+
+            return null;
+        }
 
         $device = Device::updateOrCreate(
             ['device_code' => $deviceCode],
@@ -222,5 +242,15 @@ class MqttListenCommand extends Command
         }
 
         return $payload;
+    }
+
+    private function normalizeDeviceStatus(string $status): ?string
+    {
+        return match (mb_strtoupper($status)) {
+            'ONLINE', 'ON', '1', 'TRUE' => 'ONLINE',
+            'OFFLINE', 'OFF', '0', 'FALSE' => 'OFFLINE',
+            'ERROR' => 'ERROR',
+            default => null,
+        };
     }
 }

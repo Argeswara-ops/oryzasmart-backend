@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Actuator;
 use App\Models\Alert;
-use App\Models\Detection;
 use App\Models\Recommendation;
 use App\Models\SensorReading;
 use App\Models\SensorThreshold;
@@ -18,7 +17,6 @@ class SmartDecisionService
     public function evaluate(): string
     {
         $latestSensor = SensorReading::latest('id')->first();
-        $latestDetection = Detection::latest('detected_at')->first();
         $thresholds = SensorThreshold::query()->get()->keyBy('sensor_type');
 
         $systemStatus = 'NORMAL';
@@ -54,9 +52,17 @@ class SmartDecisionService
                 }
             }
 
-            foreach (['phosphorus', 'potassium', 'light', 'ultrasonic'] as $sensorType) {
+            $sensorMappings = [
+                'phosphorus' => ['attribute' => 'phosphorus', 'label' => 'Fosfor'],
+                'potassium' => ['attribute' => 'potassium', 'label' => 'Kalium'],
+                'light_percent' => ['attribute' => 'light_percent', 'label' => 'Intensitas cahaya'],
+                'uv_index' => ['attribute' => 'uv_index', 'label' => 'Indeks UV'],
+                'water_level' => ['attribute' => 'level_percent', 'label' => 'Ketinggian air'],
+            ];
+
+            foreach ($sensorMappings as $sensorType => $mapping) {
                 $threshold = $thresholds->get($sensorType);
-                $value = $latestSensor->{$sensorType};
+                $value = $latestSensor->{$mapping['attribute']};
 
                 if (! $threshold || $value === null) {
                     continue;
@@ -64,22 +70,13 @@ class SmartDecisionService
 
                 if ($value < $threshold->min_value || $value > $threshold->max_value) {
                     $systemStatus = 'WARNING';
-                    $issues[] = ucfirst($sensorType)." di luar batas: {$value} (Rentang: {$threshold->min_value}-{$threshold->max_value})";
-                    $recommendationsText[] = "Periksa dan sesuaikan kondisi {$sensorType} pada area pembibitan.";
+                    $issues[] = "{$mapping['label']} di luar batas: {$value} (Rentang: {$threshold->min_value}-{$threshold->max_value})";
+                    $recommendationsText[] = "Periksa dan sesuaikan {$mapping['label']} pada area pembibitan.";
                 }
             }
         }
 
-        // 2. Evaluate Computer Vision Detection
-        if ($latestDetection && in_array(strtoupper($latestDetection->detection_type), ['PEST', 'DISEASE'])) {
-            $severityLevel = $latestDetection->confidence > 0.85 ? 'CRITICAL' : 'WARNING';
-            $systemStatus = $severityLevel;
-            $issues[] = "Terdeteksi {$latestDetection->detection_type} ({$latestDetection->class_name}) dengan confidence ".round($latestDetection->confidence * 100).'%';
-            $camCode = $latestDetection->camera->camera_code ?? 'CAM';
-            $recommendationsText[] = "Lakukan pemeriksaan fisik pada area penanaman kamera {$camCode} dan berikan penanganan yang tepat.";
-        }
-
-        // 3. Create Alert & Recommendation if abnormal
+        // 2. Create Alert & Recommendation if abnormal
         if ($systemStatus !== 'NORMAL' && ! empty($issues)) {
             $title = "Peringatan Sistem ({$systemStatus})";
             $message = implode(' | ', $issues);
@@ -92,8 +89,6 @@ class SmartDecisionService
             if (! $recentAlert) {
                 $alert = Alert::create([
                     'device_id' => $latestSensor?->device_id,
-                    'camera_id' => $latestDetection?->camera_id,
-                    'detection_id' => $latestDetection?->id,
                     'type' => 'SMART_DECISION',
                     'source' => 'SmartDecisionService',
                     'severity' => $systemStatus,
@@ -114,7 +109,7 @@ class SmartDecisionService
             }
         }
 
-        // 4. Automatic Control Logic (Kipas)
+        // 3. Automatic Control Logic (Kipas)
         $this->handleAutoActuatorControl($latestSensor, $thresholds);
 
         return $systemStatus;
