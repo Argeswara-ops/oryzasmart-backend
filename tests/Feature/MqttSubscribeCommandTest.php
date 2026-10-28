@@ -141,23 +141,53 @@ class MqttSubscribeCommandTest extends TestCase
         ]);
     }
 
-    public function test_device_on_and_off_payloads_are_normalized_to_connection_status(): void
+    public function test_plain_online_and_offline_payloads_are_normalized_to_connection_status(): void
     {
         $command = app(MqttListenCommand::class);
 
         $onlineDevice = $command->processStatusMessage(
             'oryza-smart/ESP32-01/status',
-            json_encode(['status' => 'ON'], JSON_THROW_ON_ERROR),
+            'online',
         );
 
         $this->assertSame('ONLINE', $onlineDevice?->status);
 
         $offlineDevice = $command->processStatusMessage(
             'oryza-smart/ESP32-01/status',
-            json_encode(['status' => 'OFF'], JSON_THROW_ON_ERROR),
+            'offline',
         );
 
         $this->assertSame('OFFLINE', $offlineDevice?->status);
+    }
+
+    public function test_dht11_only_payload_from_esp_document_is_persisted(): void
+    {
+        $command = app(MqttListenCommand::class);
+        $payload = json_encode([
+            'device' => 'ESP32-01',
+            'temperature' => 28.4,
+            'humidity' => 74.2,
+        ], JSON_THROW_ON_ERROR);
+
+        $reading = $command->processSensorMessage(
+            'oryza-smart/ESP32-01/sensors',
+            $payload,
+            app(SensorService::class),
+        );
+
+        $this->assertInstanceOf(SensorReading::class, $reading);
+        $this->assertDatabaseHas('devices', [
+            'device_code' => 'ESP32-01',
+            'status' => 'ONLINE',
+        ]);
+        $this->assertDatabaseHas('sensor_readings', [
+            'device_id' => Device::where('device_code', 'ESP32-01')->value('id'),
+            'temperature' => 28.4,
+            'humidity' => 74.2,
+            'nitrogen' => null,
+            'phosphorus' => null,
+            'potassium' => null,
+        ]);
     }
 
     public function test_invalid_json_payload_is_logged_and_ignored(): void

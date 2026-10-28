@@ -115,13 +115,25 @@ Payload online dan offline:
 {"status":"OFF"}
 ```
 
-Nilai `ON/OFF` dinormalisasi backend menjadi `ONLINE/OFFLINE`. Nilai tersebut juga boleh dikirim langsung sebagai `ONLINE/OFFLINE`.
+Backend juga menerima payload teks polos `online` dan `offline` seperti yang dipakai kode testing pada `docs/ESP.MD`. Semua bentuk tersebut dinormalisasi menjadi `ONLINE/OFFLINE`.
 
 ESP32 mengirim pembacaan sensor ke:
 
 ```text
 oryza-smart/ESP32-01/sensors
 ```
+
+Payload minimum untuk testing satu sensor DHT11:
+
+```json
+{
+  "device": "ESP32-01",
+  "temperature": 28.5,
+  "humidity": 74
+}
+```
+
+Field NPK, cahaya, UV, ultrasonik, ketinggian air, dan kipas bersifat opsional. Payload lengkap yang didukung:
 
 ```json
 {

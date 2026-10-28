@@ -44,7 +44,7 @@ class SmartDecisionService
                 }
             }
 
-            if ($nThresh = $thresholds->get('nitrogen')) {
+            if (($nThresh = $thresholds->get('nitrogen')) && $latestSensor->nitrogen !== null) {
                 if ($latestSensor->nitrogen < $nThresh->min_value) {
                     $systemStatus = 'WARNING';
                     $issues[] = "Kadar Nitrogen rendah: {$latestSensor->nitrogen} (Min: {$nThresh->min_value})";

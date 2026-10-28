@@ -23,6 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'operator' => EnsureOperator::class,
             'vision.key' => EnsureVisionApiKey::class,
         ]);
+
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            return route('login');
+        });
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

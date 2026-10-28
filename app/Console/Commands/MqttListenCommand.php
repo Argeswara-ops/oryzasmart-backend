@@ -108,7 +108,7 @@ class MqttListenCommand extends Command
 
     public function processStatusMessage(string $topic, string $message): ?Device
     {
-        $payload = $this->decodeJsonMessage($topic, $message);
+        $payload = $this->decodeStatusMessage($topic, $message);
         if ($payload === null) {
             return null;
         }
@@ -242,6 +242,19 @@ class MqttListenCommand extends Command
         }
 
         return $payload;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function decodeStatusMessage(string $topic, string $message): ?array
+    {
+        $plainStatus = trim($message);
+        if ($this->normalizeDeviceStatus($plainStatus) !== null) {
+            return ['status' => $plainStatus];
+        }
+
+        return $this->decodeJsonMessage($topic, $message);
     }
 
     private function normalizeDeviceStatus(string $status): ?string
