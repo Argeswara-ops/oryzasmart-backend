@@ -65,6 +65,13 @@ class DeviceController extends Controller
                 'is_online' => $device->status === 'ONLINE',
                 'last_seen' => $device->last_seen,
                 'fan' => $this->fanData($device),
+            'pump' => $this->fanData($device),
+            'mist' => [
+                'name' => 'Kabut Air 01',
+                'status' => $device->status === 'ONLINE' ? 'STANDBY' : 'OFFLINE',
+                'is_on' => $device->status === 'ONLINE',
+                'mode' => 'AUTO',
+            ],
             ],
         ]);
     }
@@ -97,6 +104,13 @@ class DeviceController extends Controller
             'is_online' => $device->status === 'ONLINE',
             'last_seen' => $device->last_seen,
             'fan' => $this->fanData($device),
+            'pump' => $this->fanData($device),
+            'mist' => [
+                'name' => 'Kabut Air 01',
+                'status' => $device->status === 'ONLINE' ? 'STANDBY' : 'OFFLINE',
+                'is_on' => $device->status === 'ONLINE',
+                'mode' => 'AUTO',
+            ],
             'latest_sensor' => $sensor ? [
                 'temperature' => $sensor->temperature,
                 'humidity' => $sensor->humidity,

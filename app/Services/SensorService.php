@@ -136,8 +136,8 @@ class SensorService
 
         match ($range) {
             'today' => $query->whereDate('recorded_at', Carbon::today()),
-            '7days' => $query->where('recorded_at', '>=', Carbon::now()->subDays(7)),
-            '30days' => $query->where('recorded_at', '>=', Carbon::now()->subDays(30)),
+            '7days', '7d' => $query->where('recorded_at', '>=', Carbon::now()->subDays(7)),
+            '30days', '30d' => $query->where('recorded_at', '>=', Carbon::now()->subDays(30)),
             default => $query->whereDate('recorded_at', Carbon::today()),
         };
 

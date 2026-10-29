@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         Actuator::firstOrCreate(
             ['device_id' => $device->id, 'type' => 'fan'],
             [
-                'name' => 'Kipas Ventilasi 01',
+                'name' => 'Pompa Air 01',
                 'mode' => 'AUTO',
                 'status' => 'OFF',
             ],

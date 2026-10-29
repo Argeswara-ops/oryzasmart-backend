@@ -20,6 +20,10 @@ class VisionScanResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $imagePath = $this->resource->image_path;
+        $relativeUrl = Storage::disk('public')->url($imagePath);
+        $imageUrl = $request ? $request->schemeAndHttpHost() . $relativeUrl : URL::to($relativeUrl);
+
         return [
             'id' => $this->resource->id,
             'local_id' => $this->resource->client_id,
@@ -29,7 +33,7 @@ class VisionScanResource extends JsonResource
             'display_name' => $this->resource->display_name,
             'confidence' => $this->resource->confidence,
             'scanned_at' => $this->resource->scanned_at->toISOString(),
-            'image_url' => URL::to(Storage::disk('public')->url($this->resource->image_path)),
+            'image_url' => $imageUrl,
             'created_at' => $this->resource->created_at->toISOString(),
         ];
     }

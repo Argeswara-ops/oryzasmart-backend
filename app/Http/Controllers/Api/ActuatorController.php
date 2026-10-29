@@ -61,7 +61,7 @@ class ActuatorController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Kipas berhasil diubah menjadi {$command} (Mode: {$mode})",
+            'message' => "Pompa air berhasil diubah menjadi {$command} (Mode: {$mode})",
             'data' => [
                 'device_id' => $deviceCode,
                 'device_online' => true,
