@@ -106,6 +106,9 @@ class SmartDecisionService
                         'recommendation' => implode(' ', $recommendationsText),
                     ]);
                 }
+
+                // Kirim notifikasi Firebase ke semua perangkat aktif
+                app(AlertService::class)->notifyAlert($alert);
             }
         }
 

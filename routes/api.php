@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaddyPredictionController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\SensorController;
@@ -20,6 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+
+    // FCM Notifications
+    Route::post('/user/fcm-token', [NotificationController::class, 'updateToken']);
+    Route::delete('/user/fcm-token', [NotificationController::class, 'removeToken']);
+    Route::post('/notifications/test', [NotificationController::class, 'sendTest']);
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);

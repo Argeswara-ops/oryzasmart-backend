@@ -103,6 +103,45 @@ class SmartRiceNurseryApiTest extends TestCase
             ->assertJsonPath('success', true);
     }
 
+    public function test_dashboard_device_and_history_use_latest_received_sensor_reading(): void
+    {
+        $device = Device::create([
+            'device_code' => 'ESP32-01',
+            'name' => 'ESP32 Utama',
+            'status' => 'ONLINE',
+            'last_seen' => now(),
+        ]);
+
+        SensorReading::create([
+            'device_id' => $device->id,
+            'temperature' => 27.2,
+            'humidity' => 76.0,
+            'recorded_at' => now(),
+        ]);
+        SensorReading::create([
+            'device_id' => $device->id,
+            'temperature' => 32.4,
+            'humidity' => 88.0,
+            'recorded_at' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.sensors.temperature', 32.4);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/devices')
+            ->assertOk()
+            ->assertJsonPath('data.0.latest_sensor.temperature', 32.4);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/sensors/history?range=today')
+            ->assertOk()
+            ->assertJsonPath('data.summary.temperature.sensor', 'temperature')
+            ->assertJsonPath('data.summary.temperature.current', 32.4);
+    }
+
     public function test_actuator_fan_control(): void
     {
         $this->mock(MqttService::class)

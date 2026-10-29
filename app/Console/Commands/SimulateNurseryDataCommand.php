@@ -80,7 +80,7 @@ class SimulateNurseryDataCommand extends Command
             'device_id' => $deviceCode,
             'uptime_s' => 120 + $iteration,
             ...$payloads[$scenario],
-            'recorded_at' => now()->subSeconds($iteration)->toDateTimeString(),
+            'recorded_at' => now()->toDateTimeString(),
         ];
     }
 }

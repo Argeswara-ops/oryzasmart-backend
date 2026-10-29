@@ -31,7 +31,7 @@ class Device extends Model
 
     public function latestSensorReading(): HasOne
     {
-        return $this->hasOne(SensorReading::class)->latestOfMany('recorded_at');
+        return $this->hasOne(SensorReading::class)->latestOfMany();
     }
 
     public function actuators(): HasMany

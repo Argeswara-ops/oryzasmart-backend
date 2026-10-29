@@ -93,7 +93,6 @@ class SensorService
     {
         $latest = SensorReading::query()
             ->when($device, fn ($query) => $query->whereBelongsTo($device))
-            ->latest('recorded_at')
             ->latest('id')
             ->first();
         if (! $latest) {
@@ -146,7 +145,7 @@ class SensorService
         $fields = ['temperature', 'humidity', 'nitrogen', 'phosphorus', 'potassium', 'light', 'ultrasonic'];
 
         $summary = [];
-        $latest = $readings->last();
+        $latest = $readings->sortByDesc('id')->first();
 
         foreach ($fields as $field) {
             $values = $readings->pluck($field)->filter(fn ($v) => ! is_null($v));
