@@ -29,10 +29,22 @@ class WebAuthController extends Controller
         $remember = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
+            $user = Auth::user();
+
+            if (! in_array($user->role, ['admin', 'operator'], true)) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Akun Anda tidak memiliki akses ke panel ini.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
 
             return redirect()->intended(route('admin.dashboard'))
-                ->with('success', 'Selamat datang kembali, '.Auth::user()->name.'!');
+                ->with('success', 'Selamat datang kembali, '.$user->name.'!');
         }
 
         return back()->withErrors([

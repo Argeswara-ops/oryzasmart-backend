@@ -10,6 +10,7 @@ use App\Services\ActuatorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AdminActuatorController extends Controller
@@ -57,7 +58,9 @@ class AdminActuatorController extends Controller
 
             return back()->with('success', "Perintah {$command} (Mode {$mode}) untuk {$actuator->name} berhasil dikirim.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal mengeksekusi kontrol aktuator: '.$e->getMessage());
+            Log::error('Actuator control failed: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Gagal mengeksekusi kontrol aktuator. Silakan periksa koneksi perangkat/MQTT.');
         }
     }
 }

@@ -45,7 +45,7 @@ class AdminUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', 'string', 'in:admin,operator'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         User::create([
@@ -69,8 +69,12 @@ class AdminUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', 'string', 'in:admin,operator'],
-            'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
+
+        if ($user->id === Auth::id() && $validated['role'] !== 'admin') {
+            return back()->with('error', 'Anda tidak dapat menurunkan role akun Anda sendiri dari Administrator.');
+        }
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
@@ -89,6 +93,10 @@ class AdminUserController extends Controller
     {
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Tidak dapat menghapus akun Administrator terakhir di sistem.');
         }
 
         $user->delete();

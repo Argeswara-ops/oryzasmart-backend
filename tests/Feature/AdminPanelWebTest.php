@@ -196,4 +196,43 @@ class AdminPanelWebTest extends TestCase
             'mode' => 'MANUAL',
         ]);
     }
+
+    public function test_operator_cannot_access_user_management(): void
+    {
+        $operator = User::factory()->create(['role' => 'operator']);
+
+        $response = $this->actingAs($operator)->get('/admin/users');
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_cannot_demote_themselves(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->put("/admin/users/{$admin->id}", [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'role' => 'operator',
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertEquals('admin', $admin->fresh()->role);
+    }
+
+    public function test_admin_cannot_delete_last_admin(): void
+    {
+        User::where('role', 'admin')->delete();
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $otherAdmin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->delete("/admin/users/{$otherAdmin->id}");
+        $response->assertRedirect('/admin/users');
+        $this->assertDatabaseMissing('users', ['id' => $otherAdmin->id]);
+
+        // Now $admin is the last admin
+        $response = $this->actingAs($admin)->delete("/admin/users/{$admin->id}");
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureOperator;
 use App\Http\Middleware\EnsureVisionApiKey;
 use Illuminate\Console\Scheduling\Schedule;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'admin' => EnsureAdmin::class,
             'operator' => EnsureOperator::class,
             'vision.key' => EnsureVisionApiKey::class,
         ]);

@@ -10,7 +10,9 @@ class EnsureOperator
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->role !== 'operator') {
+        $role = $request->user()?->role;
+
+        if (! in_array($role, ['operator', 'admin'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses operator diperlukan.',

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\FirebaseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
@@ -58,22 +59,32 @@ class NotificationController extends Controller
      */
     public function sendTest(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'fcm_token' => ['nullable', 'string', 'max:500'],
+            'title' => ['nullable', 'string', 'max:150'],
+            'body' => ['nullable', 'string', 'max:500'],
+        ]);
+
         $user = $request->user();
-        $token = $request->input('fcm_token') ?? $user->fcm_token;
+
+        // Non-admin users may only send test notifications to their own token
+        $token = ($user->role === 'admin' && !empty($validated['fcm_token']))
+            ? $validated['fcm_token']
+            : $user->fcm_token;
 
         if (empty($token)) {
             return response()->json([
                 'success' => false,
-                'message' => 'FCM token tidak ditemukan pada user atau request. Daftarkan token terlebih dahulu.',
+                'message' => 'FCM token tidak ditemukan pada akun Anda. Daftarkan token terlebih dahulu.',
             ], 422);
         }
 
-        $title = $request->input('title', 'Uji Coba Notifikasi PadiApps');
-        $body = $request->input('body', 'Koneksi Firebase Cloud Messaging dari backend Laravel berhasil!');
-        $data = $request->input('data', [
+        $title = $validated['title'] ?? 'Uji Coba Notifikasi Oryza Apps';
+        $body = $validated['body'] ?? 'Koneksi Firebase Cloud Messaging dari backend Laravel berhasil!';
+        $data = [
             'type' => 'TEST_NOTIFICATION',
             'timestamp' => (string) now()->timestamp,
-        ]);
+        ];
 
         try {
             $sent = $this->firebaseService->sendToToken($token, $title, $body, $data);
@@ -87,12 +98,14 @@ class NotificationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim notifikasi via Firebase. Periksa log backend.',
+                'message' => 'Gagal mengirim notifikasi via Firebase.',
             ], 500);
         } catch (\Throwable $e) {
+            Log::error('FCM sendTest failure: '.$e->getMessage(), ['exception' => $e]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan sistem saat mengirim notifikasi.',
             ], 500);
         }
     }

@@ -18,10 +18,10 @@ Route::get('/', function () {
 
 // Authentication Web Routes
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [WebAuthController::class, 'login'])->name('login.post');
+Route::middleware('throttle:login')->post('/login', [WebAuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 
-// Protected Admin Panel Routes
+// Protected Panel Routes (Admin & Operator)
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/', function () {
@@ -29,8 +29,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     });
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Users Management (CRUD)
-    Route::resource('users', AdminUserController::class);
+    // Users Management (CRUD) - Restricted to Administrator role only
+    Route::middleware('admin')->resource('users', AdminUserController::class);
 
     // Devices Management (CRUD)
     Route::resource('devices', AdminDeviceController::class);
