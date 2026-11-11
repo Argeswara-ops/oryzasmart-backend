@@ -13,6 +13,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/admin/dashboard');
+        $response->assertStatus(200);
+        $response->assertSee('Segera Hadir');
     }
 }

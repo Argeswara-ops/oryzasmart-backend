@@ -11,9 +11,9 @@ use App\Http\Controllers\Admin\AdminVisionController;
 use App\Http\Controllers\Auth\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect root to dashboard or login
+// Root landing page (Coming Soon)
 Route::get('/', function () {
-    return redirect()->route('admin.dashboard');
+    return view('welcome');
 });
 
 // Authentication Web Routes
