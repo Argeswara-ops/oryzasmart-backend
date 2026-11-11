@@ -124,6 +124,32 @@ class AdminPanelWebTest extends TestCase
     public function test_admin_can_view_four_actuator_types_and_controls(): void
     {
         $operator = User::factory()->create(['role' => 'operator']);
+        $device = Device::firstOrCreate(
+            ['device_code' => 'ESP32-TEST'],
+            [
+                'name' => 'ESP32 Test',
+                'type' => 'esp32',
+                'location' => 'Test Location',
+                'status' => 'ONLINE',
+            ]
+        );
+
+        \App\Models\Actuator::firstOrCreate(
+            ['device_id' => $device->id, 'type' => 'water_pump'],
+            ['name' => 'Pompa Air', 'mode' => 'AUTO', 'status' => 'ON']
+        );
+        \App\Models\Actuator::firstOrCreate(
+            ['device_id' => $device->id, 'type' => 'fan'],
+            ['name' => 'Kipas / Fan', 'mode' => 'AUTO', 'status' => 'ON']
+        );
+        \App\Models\Actuator::firstOrCreate(
+            ['device_id' => $device->id, 'type' => 'led_uv'],
+            ['name' => 'LED UV', 'mode' => 'AUTO', 'status' => 'OFF']
+        );
+        \App\Models\Actuator::firstOrCreate(
+            ['device_id' => $device->id, 'type' => 'mist_pump'],
+            ['name' => 'Pompa Kabut', 'mode' => 'AUTO', 'status' => 'OFF']
+        );
 
         $response = $this->actingAs($operator)->get('/admin/actuators');
         $response->assertStatus(200);
@@ -142,7 +168,19 @@ class AdminPanelWebTest extends TestCase
     public function test_operator_can_control_actuator(): void
     {
         $operator = User::factory()->create(['role' => 'operator']);
-        $actuator = \App\Models\Actuator::first();
+        $device = Device::firstOrCreate(
+            ['device_code' => 'ESP32-TEST'],
+            [
+                'name' => 'ESP32 Test',
+                'type' => 'esp32',
+                'location' => 'Test Location',
+                'status' => 'ONLINE',
+            ]
+        );
+        $actuator = \App\Models\Actuator::firstOrCreate(
+            ['device_id' => $device->id, 'type' => 'water_pump'],
+            ['name' => 'Pompa Air', 'mode' => 'AUTO', 'status' => 'ON']
+        );
 
         $response = $this->actingAs($operator)->post('/admin/actuators/control', [
             'actuator_id' => $actuator->id,
