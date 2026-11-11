@@ -85,11 +85,31 @@ class AdminPanelWebTest extends TestCase
     public function test_admin_can_view_devices_and_sensors(): void
     {
         $operator = User::factory()->create(['role' => 'operator']);
+        $device = Device::firstOrCreate(
+            ['device_code' => 'ESP32-TEST'],
+            [
+                'name' => 'ESP32 Test',
+                'type' => 'esp32',
+                'location' => 'Test Location',
+                'status' => 'ONLINE',
+            ]
+        );
+
+        // Create sensor readings with level_percent
+        \App\Models\SensorReading::create([
+            'device_id' => $device->id,
+            'temperature' => 28.5,
+            'humidity' => 75,
+            'level_percent' => 80.0,
+            'distance_cm' => 15.0,
+            'recorded_at' => now(),
+        ]);
 
         $response = $this->actingAs($operator)->get('/admin/devices');
         $response->assertStatus(200);
 
         $response = $this->actingAs($operator)->get('/admin/sensors');
         $response->assertStatus(200);
+        $response->assertSee('80 %');
     }
 }

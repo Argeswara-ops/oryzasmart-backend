@@ -49,4 +49,9 @@ class SensorReading extends Model
     {
         return $this->belongsTo(Device::class);
     }
+
+    public function getWaterLevelPercentAttribute(): ?float
+    {
+        return $this->level_percent !== null ? (float) $this->level_percent : null;
+    }
 }
