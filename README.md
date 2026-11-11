@@ -6,7 +6,8 @@ Project ini tidak lagi memakai perangkat kamera atau API detection. Fitur Oryza 
 
 ## Fitur
 
-- Autentikasi API dengan Laravel Sanctum.
+- **Web Admin Panel Terintegrasi**: Dashboard interaktif berbasis web, CRUD User, Device ESP32, ambang batas sensor, kontrol aktuator kipas, log alert, dan arsip scan Oryza Vision.
+- Autentikasi API dengan Laravel Sanctum & Web Session Auth untuk Panel Admin.
 - Status koneksi ESP32 berdasarkan heartbeat MQTT.
 - Monitoring suhu, kelembapan, NPK, cahaya, UV, jarak sensor ultrasonik, dan persentase ketinggian air.
 - Status aktual dan kontrol kipas `ON`, `OFF`, atau `AUTO`.
@@ -14,6 +15,25 @@ Project ini tidak lagi memakai perangkat kamera atau API detection. Fitur Oryza 
 - Alert dan rekomendasi otomatis ketika pembacaan melewati ambang.
 - Prediksi penyakit/hama dari gambar melalui Oryza Vision API.
 - Simulator ESP32 dan MQTT untuk development.
+
+## Web Admin Panel
+
+Akses langsung melalui browser:
+
+- **URL Login Web**: `http://127.0.0.1:8000/login` atau `http://127.0.0.1:8000/admin`
+- **Email Default**: `operator@padibackend.test`
+- **Password Default**: `password`
+
+### Modul Panel Admin:
+1. **Dashboard Overview**: Ringkasan KPI sensor, status koneksi ESP32 online/offline, quick toggle kipas, alert belum dibaca, dan grafik tren real-time.
+2. **Manajemen User (CRUD)**: Tambah, edit, cari, filter role (`admin` / `operator`), dan hapus user.
+3. **Manajemen Perangkat IoT (CRUD)**: Kelola node mikrokontroler ESP32, tipe perangkat, lokasi penempatan, dan status.
+4. **Monitoring Sensor**: Tabel log telemetri lengkap, statistik agregat rata-rata, filter rentang waktu (today, 7days, 30days), dan visualisasi multi-chart.
+5. **Ambang Batas (Thresholds)**: Konfigurasi batas toleransi minimum & maksimum untuk 8 sensor (suhu, kelembaban, air sawah %, NPK, cahaya, UV).
+6. **Kontrol Aktuator & Log**: Kontrol kipas ventilasi (ON/OFF/AUTO) serta riwayat eksekusi sistem vs operator.
+7. **Peringatan & Alert**: Log peringatan kritis, filter status belum dibaca, dan tombol tandai semua dibaca.
+8. **Oryza Vision**: Galeri arsip foto daun hasil scan penyakit dan skor keyakinan (*confidence*).
+
 
 ## Stack
 
