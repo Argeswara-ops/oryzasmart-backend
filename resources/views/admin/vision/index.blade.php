@@ -20,9 +20,8 @@
             <select name="scan_type" onchange="this.form.submit()" 
                     class="py-2 px-3 text-xs rounded-xl bg-white border border-slate-200 text-slate-700 focus:outline-none focus:border-emerald-500">
                 <option value="">Semua Tipe</option>
-                <option value="crop_health" {{ request('scan_type') === 'crop_health' ? 'selected' : '' }}>Crop Health</option>
-                <option value="leaf_blast" {{ request('scan_type') === 'leaf_blast' ? 'selected' : '' }}>Leaf Blast</option>
-                <option value="brown_spot" {{ request('scan_type') === 'brown_spot' ? 'selected' : '' }}>Brown Spot</option>
+                <option value="disease" {{ request('scan_type') === 'disease' ? 'selected' : '' }}>Penyakit (Disease)</option>
+                <option value="pest" {{ request('scan_type') === 'pest' ? 'selected' : '' }}>Hama (Pest)</option>
             </select>
 
             @if(request()->hasAny(['search', 'scan_type']))
@@ -40,11 +39,22 @@
                     <div class="h-44 w-full bg-slate-100 relative overflow-hidden flex items-center justify-center">
                         @if($scan->image_path)
                             <img src="{{ asset('storage/' . $scan->image_path) }}" alt="{{ $scan->display_name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="hidden image-fallback flex flex-col items-center justify-center text-slate-400 p-4">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5">
+                                    <i data-lucide="leaf" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-600 text-center">{{ $scan->display_name }}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">Telemetri Daun</span>
+                            </div>
                         @else
-                            <div class="text-center text-slate-400">
-                                <i data-lucide="image-off" class="w-8 h-8 mx-auto mb-1"></i>
-                                <span class="text-[10px]">Gambar kosong</span>
+                            <div class="flex flex-col items-center justify-center text-slate-400 p-4">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5">
+                                    <i data-lucide="leaf" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-600 text-center">{{ $scan->display_name }}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">Telemetri Daun</span>
                             </div>
                         @endif
 

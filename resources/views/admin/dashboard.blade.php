@@ -398,6 +398,45 @@
 
     </div>
 
+    <!-- Real-time Popup Toast for Unread Alerts -->
+    @if($unreadAlertsCount > 0 && $recentAlerts->isNotEmpty())
+        @php
+            $activeAlert = $recentAlerts->firstWhere('status', 'UNREAD') ?? $recentAlerts->first();
+        @endphp
+        <div x-data="{ showToast: true }" 
+             x-show="showToast"
+             x-init="setTimeout(() => showToast = false, 10000)"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:translate-x-4"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-4"
+             class="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-white rounded-2xl border border-amber-200/90 shadow-2xl p-4 flex items-start gap-3 backdrop-blur-md">
+            <div class="w-9 h-9 rounded-xl {{ in_array($activeAlert->severity, ['CRITICAL', 'DANGER']) ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700' }} flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="bell-ring" class="w-4 h-4 animate-bounce"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider {{ in_array($activeAlert->severity, ['CRITICAL', 'DANGER']) ? 'text-red-600' : 'text-amber-600' }}">
+                        {{ $activeAlert->severity }} • Peringatan Baru
+                    </span>
+                    <button @click="showToast = false" class="text-slate-400 hover:text-slate-600 p-0.5">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <h5 class="text-xs font-bold text-slate-900 mt-1 truncate">{{ $activeAlert->title }}</h5>
+                <p class="text-[11px] text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">{{ $activeAlert->message }}</p>
+                <div class="mt-2.5 flex items-center justify-between text-[11px]">
+                    <a href="{{ route('admin.alerts.index') }}" class="font-semibold text-emerald-600 hover:text-emerald-700">
+                        Buka Alert &rarr;
+                    </a>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ $activeAlert->device ? $activeAlert->device->device_code : 'ESP32' }}</span>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
 @endsection
 

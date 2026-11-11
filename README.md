@@ -9,12 +9,15 @@ Sistem ini memproses data telemetri multi-sensor lingkungan (suhu, kelembaban, l
 ## Fitur Utama
 
 - **Web Admin Panel Modern & Responsif**: Antarmuka kontrol terpadu yang dirancang menggunakan tipografi **Plus Jakarta Sans**, tata letak responsif (*all device: mobile, tablet, desktop*), *copywriting* ringkas, dan performa sinkron dengan database & MQTT.
+- **Login Card Bersih (Light Mode)**: Desain kartu autentikasi putih bersih (*light mode*) dengan icon branding berdampingan dengan judul di dalam kartu, serta fitur interaktif *Show/Hide Password*.
+- **Sidebar Terfiksasi (Fixed Profile Card)**: Navigasi sidebar dengan kartu profil pengguna yang terfiksasi di bagian bawah (*fixed/pinned*), tidak tergulung saat daftar menu discroll.
+- **Popup Notifikasi Interaktif**: Dropdown popup alert pada lonceng navbar dan toast alert dinamis untuk notifikasi kondisi kritis secara *real-time*.
 - **Role-Based Access Control (RBAC)**: Pembagian hak akses antara `admin` (akses penuh sistem & manajemen akun) dan `operator` (akses operasional monitoring & aktuator).
 - **Telemetri & Visualisasi Data Real-Time**: Grafik multi-series dinamis menggunakan Chart.js untuk memantau tren suhu, kelembaban, dan ketinggian air.
 - **Kontrol Aktuator & Audit Log**: Kendali manual (`ON`/`OFF`) dan mode otomatis (`AUTO`) kipas pendingin disertai pencatatan audit log eksekusi sistem vs operator.
 - **Ambang Batas Dinamis (Sensor Thresholds)**: Pengaturan batas toleransi minimum dan maksimum untuk 8 parameter sensor dengan fitur *Reset Default*.
 - **Peringatan & Rekomendasi Lapangan**: Log anomali otomatis saat kondisi pembibitan melewati batas aman beserta rekomendasi tindakan.
-- **Arsip Oryza Vision**: Penyimpanan riwayat diagnosis daun padi (*crop health*, *leaf blast*, *brown spot*) lengkap dengan skor keyakinan (*confidence*).
+- **Arsip Oryza Vision**: Penyimpanan riwayat diagnosis daun padi (*disease* & *pest*) lengkap dengan skor keyakinan (*confidence*).
 - **RESTful API Terlindungi Sanctum**: Endpoint performa tinggi untuk aplikasi Flutter dan sinkronisasi token notifikasi Firebase FCM.
 - **Integrasi Protokol MQTT**: Komunikasi dua arah dengan node ESP32 (Wokwi & hardware fisik) melalui broker MQTT HiveMQ.
 
@@ -26,7 +29,7 @@ Panel admin dapat diakses langsung melalui browser setelah server lokal atau pro
 
 - **URL Login**: `http://127.0.0.1:8000/login` atau `http://127.0.0.1:8000/admin`
 - **Tipografi**: Plus Jakarta Sans (Google Fonts)
-- **Desain UI**: Bersih, minimalis tanpa icon branding berlebih, modern dark glassmorphism login, responsive drawer sidebar pada perangkat mobile.
+- **Desain UI**: Bersih, light mode modern, responsive drawer sidebar pada perangkat mobile, fixed bottom profile widget.
 
 ### Kredensial Akun Dummy Default (Database Seeder)
 
@@ -36,18 +39,19 @@ Database seeder menyediakan akun bawaan siap pakai untuk keperluan *development*
 | :--- | :--- | :--- | :--- |
 | **Administrator** | `admin@padibackend.test` | `password` | Akses penuh: Manajemen Pengguna, Konfigurasi Perangkat, Ambang Batas, Aktuator, Monitoring Sensor, Log Alert, Arsip Vision |
 | **Operator** | `operator@padibackend.test` | `password` | Akses operasional: Dashboard, Monitoring Sensor, Kontrol Kipas, Ambang Batas, Log Alert, Arsip Vision |
+| **Teknisi** | `teknisi@padibackend.test` | `password` | Akses operasional pemeliharaan lapangan dan monitoring telemetri |
 
 ---
 
 ## Modul Panel Admin
 
-1. **Dashboard**: Ringkasan KPI sensor lingkungan (suhu, kelembaban, ketinggian air sawah, NPK, cahaya & UV), status node ESP32 (*online/offline*), tombol kendali cepat kipas, indikator peringatan aktif, serta grafik tren 30 titik data terakhir.
+1. **Dashboard**: Ringkasan KPI sensor lingkungan (suhu, kelembaban, ketinggian air sawah, NPK, cahaya & UV), status node ESP32 (*online/offline*), tombol kendali cepat kipas, indikator peringatan aktif, toast notification alert, serta grafik tren 30 titik data terakhir.
 2. **Monitoring Sensor**: Agregasi statistik rata-rata pembacaan, visualisasi 50 data terakhir, filter fleksibel (hari ini, 7 hari, 30 hari), dan tabel log telemetri dengan pagination.
 3. **Kontrol Aktuator**: Kartu kendali status kipas (`Hidupkan`, `Matikan`, `Mode Otomatis`) dan tabel riwayat audit perintah (perintah, sumber pemicu, operator pengeksekusi, dan catatan).
 4. **Ambang Batas (Thresholds)**: Konfigurasi batas toleransi aman minimum & maksimum untuk 8 sensor (suhu, kelembaban, ketinggian air, N, P, K, intensitas cahaya, dan UV) beserta tombol reset ke nilai default.
 5. **Perangkat IoT (CRUD)**: Manajemen node mikrokontroler (ESP32, kamera, gateway), monitoring status koneksi (*heartbeat* terakhir), dan lokasi penempatan.
 6. **Log Peringatan**: Manajemen notifikasi anomali sensor, filter tingkat keparahan (`INFO`, `WARNING`, `CRITICAL`), status baca/belum dibaca, serta tombol *Tandai Semua Dibaca*.
-7. **Deteksi Penyakit (Oryza Vision)**: Galeri visual arsip scan daun padi dari aplikasi mobile, filter tipe diagnosis, label kelas penyakit, dan skor akurasi deteksi.
+7. **Deteksi Penyakit (Oryza Vision)**: Galeri visual arsip scan daun padi dari aplikasi mobile, filter tipe diagnosis (`disease` / `pest`), label kelas penyakit, dan skor akurasi deteksi.
 8. **Manajemen User (CRUD)**: Kelola akun pengguna sistem, tambah operator/admin baru, ubah peran dan kata sandi, dengan proteksi penghapusan akun sendiri (*self-deletion protection*).
 
 ---
@@ -106,7 +110,7 @@ MQTT_FAN_COMMAND_PAYLOAD=wokwi_json
 
 ### 3. Migrasi Database & Seeding Akun
 
-Jalankan migrasi tabel beserta *seeder* data default (termasuk akun Administrator dan Operator):
+Jalankan migrasi tabel beserta *seeder* data dummy lengkap (pengguna, node ESP32 aktif, telemetri sensor, log aktuator, alert, dan hasil vision):
 
 ```bash
 php artisan migrate --seed

@@ -62,12 +62,12 @@
          class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity">
     </div>
 
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation: Fixed card profil di bawah, tidak ikut scroll -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-           class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-200 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col shadow-xl">
+           class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-200 transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 flex flex-col shadow-xl">
         
-        <!-- Brand Header -->
-        <div class="h-20 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40">
+        <!-- Brand Header (shrink-0) -->
+        <div class="h-20 shrink-0 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 group">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
                     <i data-lucide="sprout" class="w-6 h-6"></i>
@@ -84,7 +84,7 @@
             </button>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Navigation Links (flex-1 overflow-y-auto) -->
         <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-3 mb-2">Menu Utama</div>
 
@@ -159,11 +159,11 @@
             </a>
         </nav>
 
-        <!-- User Profile Card in Sidebar Bottom -->
-        <div class="p-4 border-t border-slate-800 bg-slate-950/30">
+        <!-- User Profile Card in Sidebar Bottom: Fixed/Pinned at Bottom -->
+        <div class="shrink-0 p-4 border-t border-slate-800 bg-slate-950/40">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center border border-emerald-500/30">
+                    <div class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center border border-emerald-500/30 shrink-0">
                         {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                     </div>
                     <div class="truncate max-w-[120px]">
@@ -204,13 +204,87 @@
                     <span class="text-xs font-semibold">{{ $espDevice ? $espDevice->device_code : 'ESP32' }}: {{ $isOnline ? 'ONLINE' : 'OFFLINE' }}</span>
                 </div>
 
-                <!-- Alerts Shortcut -->
-                <a href="{{ route('admin.alerts.index') }}" class="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    @if($unreadAlertsBadge > 0)
-                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white"></span>
-                    @endif
-                </a>
+                <!-- Notification Dropdown Popup -->
+                <div class="relative" x-data="{ notifOpen: false }" @click.outside="notifOpen = false">
+                    <button @click="notifOpen = !notifOpen" 
+                            type="button" 
+                            title="Peringatan Sistem"
+                            class="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors focus:outline-none">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        @if($unreadAlertsBadge > 0)
+                            <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white animate-pulse"></span>
+                        @endif
+                    </button>
+
+                    <!-- Notification Popup Panel -->
+                    <div x-show="notifOpen" 
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                         class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-slate-200/90 shadow-2xl z-50 overflow-hidden">
+                        
+                        <div class="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="bell-ring" class="w-4 h-4 text-emerald-600"></i>
+                                <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider">Peringatan Sistem</h4>
+                            </div>
+                            @if($unreadAlertsBadge > 0)
+                                <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-full">
+                                    {{ $unreadAlertsBadge }} Baru
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                            @php
+                                $popupAlerts = \App\Models\Alert::with('device')->latest()->take(5)->get();
+                            @endphp
+                            @forelse($popupAlerts as $pAlert)
+                                <div class="p-3.5 hover:bg-slate-50/80 transition-colors {{ $pAlert->status === 'UNREAD' ? 'bg-amber-50/30' : '' }}">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-7 h-7 rounded-lg {{ in_array($pAlert->severity, ['CRITICAL', 'DANGER']) ? 'bg-red-100 text-red-600' : ($pAlert->severity === 'WARNING' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600') }} flex items-center justify-center shrink-0 mt-0.5">
+                                            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-1">
+                                                <p class="text-xs font-bold text-slate-900 truncate">{{ $pAlert->title }}</p>
+                                                <span class="text-[10px] text-slate-400 font-mono shrink-0">
+                                                    {{ $pAlert->created_at ? $pAlert->created_at->diffForHumans(null, true) : '' }}
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">{{ $pAlert->message }}</p>
+                                            <div class="mt-1 flex items-center justify-between text-[10px]">
+                                                <span class="font-mono text-slate-400">{{ $pAlert->device ? $pAlert->device->device_code : 'Sistem' }}</span>
+                                                @if($pAlert->status === 'UNREAD')
+                                                    <form method="POST" action="{{ route('admin.alerts.read', $pAlert) }}" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold">Tandai Dibaca</button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="p-6 text-center text-xs text-slate-400">
+                                    <i data-lucide="check-circle" class="w-6 h-6 mx-auto mb-1 text-emerald-500"></i>
+                                    Semua sistem berjalan normal
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                            <a href="{{ route('admin.alerts.index') }}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1">
+                                <span>Lihat Semua Peringatan</span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Date / Time -->
                 <div class="hidden md:block text-xs font-medium text-slate-500 pl-2 border-l border-slate-200">

@@ -33,7 +33,7 @@ class ActuatorService
         ActuatorLog::create([
             'actuator_id' => $actuator->id,
             'user_id' => $user?->id,
-            'command' => $commandUpper,
+            'command' => in_array($commandUpper, ['ON', 'OFF'], true) ? $commandUpper : ($newStatus === 'ON' ? 'ON' : 'OFF'),
             'mode' => $newMode,
             'source' => $source,
             'previous_status' => $previousStatus,
