@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Tambah Perangkat')
-@section('page_title', 'Tambah Perangkat IoT Baru')
+@section('page_title', 'Tambah Perangkat')
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
@@ -9,14 +9,14 @@
     <div class="flex items-center justify-between">
         <a href="{{ route('admin.devices.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Kembali ke Daftar Perangkat
+            Kembali
         </a>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-slate-800">Registrasi Perangkat IoT</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Daftarkan identifier perangkat mikrokontroler agar dapat mengirimkan telemetri.</p>
+            <h3 class="text-base font-bold text-slate-800">Registrasi Node</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Daftarkan perangkat baru ke sistem.</p>
         </div>
 
         <form method="POST" action="{{ route('admin.devices.store') }}" class="space-y-4">
@@ -34,7 +34,7 @@
                     <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Nama Perangkat</label>
                     <input type="text" id="name" name="name" value="{{ old('name') }}" required
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
-                           placeholder="Misal: Node Sawah Blok B">
+                           placeholder="Misal: Node Sawah Barat">
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
                 <label for="location" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Lokasi Penempatan</label>
                 <input type="text" id="location" name="location" value="{{ old('location') }}"
                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
-                       placeholder="Misal: Petak 3 Sawah Barat, Desa Sukamaju">
+                       placeholder="Misal: Rumah Kaca Pembibitan 01">
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
@@ -80,4 +80,3 @@
 
 </div>
 @endsection
-

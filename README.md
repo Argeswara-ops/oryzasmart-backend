@@ -1,83 +1,89 @@
-# Oryza Backend
+# Oryza Backend & Web Admin Panel
 
-Oryza Backend adalah REST API Laravel untuk monitoring pembibitan padi berbasis ESP32. Backend menerima heartbeat, pembacaan sensor, dan feedback kipas melalui MQTT; menyimpan datanya ke MySQL; lalu menyediakannya untuk aplikasi Flutter melalui API yang dilindungi Laravel Sanctum.
+Oryza Backend adalah platform backend berbasis **Laravel 11** dan **PHP 8.4** yang terintegrasi dengan **MQTT (HiveMQ)** untuk sistem pemantauan dan otomasi pembibitan padi pintar berbasis IoT (**ESP32**) serta sinkronisasi dengan aplikasi mobile **Flutter** dan **Web Admin Panel**.
 
-Project ini tidak lagi memakai perangkat kamera atau API detection. Fitur Oryza Vision yang tersisa adalah prediksi dari gambar yang diunggah aplikasi dan sinkronisasi riwayat scan manual.
+Sistem ini memproses data telemetri multi-sensor lingkungan (suhu, kelembaban, level air sawah, unsur hara NPK, intensitas cahaya, dan indeks UV), status konektivitas perangkat (*heartbeat*), otomasi kontrol aktuator kipas ventilasi berbasis ambang batas (*threshold*), sistem peringatan (*alert*), serta arsip klasifikasi penyakit tanaman padi (*Oryza Vision*).
 
-## Fitur
+---
 
-- **Web Admin Panel Terintegrasi**: Dashboard interaktif berbasis web, CRUD User, Device ESP32, ambang batas sensor, kontrol aktuator kipas, log alert, dan arsip scan Oryza Vision.
-- Autentikasi API dengan Laravel Sanctum & Web Session Auth untuk Panel Admin.
-- Status koneksi ESP32 berdasarkan heartbeat MQTT.
-- Monitoring suhu, kelembapan, NPK, cahaya, UV, jarak sensor ultrasonik, dan persentase ketinggian air.
-- Status aktual dan kontrol kipas `ON`, `OFF`, atau `AUTO`.
-- Ambang sensor yang dapat diubah operator.
-- Alert dan rekomendasi otomatis ketika pembacaan melewati ambang.
-- Prediksi penyakit/hama dari gambar melalui Oryza Vision API.
-- Simulator ESP32 dan MQTT untuk development.
+## Fitur Utama
+
+- **Web Admin Panel Modern & Responsif**: Antarmuka kontrol terpadu yang dirancang menggunakan tipografi **Plus Jakarta Sans**, tata letak responsif (*all device: mobile, tablet, desktop*), *copywriting* ringkas, dan performa sinkron dengan database & MQTT.
+- **Role-Based Access Control (RBAC)**: Pembagian hak akses antara `admin` (akses penuh sistem & manajemen akun) dan `operator` (akses operasional monitoring & aktuator).
+- **Telemetri & Visualisasi Data Real-Time**: Grafik multi-series dinamis menggunakan Chart.js untuk memantau tren suhu, kelembaban, dan ketinggian air.
+- **Kontrol Aktuator & Audit Log**: Kendali manual (`ON`/`OFF`) dan mode otomatis (`AUTO`) kipas pendingin disertai pencatatan audit log eksekusi sistem vs operator.
+- **Ambang Batas Dinamis (Sensor Thresholds)**: Pengaturan batas toleransi minimum dan maksimum untuk 8 parameter sensor dengan fitur *Reset Default*.
+- **Peringatan & Rekomendasi Lapangan**: Log anomali otomatis saat kondisi pembibitan melewati batas aman beserta rekomendasi tindakan.
+- **Arsip Oryza Vision**: Penyimpanan riwayat diagnosis daun padi (*crop health*, *leaf blast*, *brown spot*) lengkap dengan skor keyakinan (*confidence*).
+- **RESTful API Terlindungi Sanctum**: Endpoint performa tinggi untuk aplikasi Flutter dan sinkronisasi token notifikasi Firebase FCM.
+- **Integrasi Protokol MQTT**: Komunikasi dua arah dengan node ESP32 (Wokwi & hardware fisik) melalui broker MQTT HiveMQ.
+
+---
 
 ## Web Admin Panel
 
-Akses langsung melalui browser:
+Panel admin dapat diakses langsung melalui browser setelah server lokal atau production aktif:
 
-- **URL Login Web**: `http://127.0.0.1:8000/login` atau `http://127.0.0.1:8000/admin`
-- **Email Default**: `operator@padibackend.test`
-- **Password Default**: `password`
+- **URL Login**: `http://127.0.0.1:8000/login` atau `http://127.0.0.1:8000/admin`
+- **Tipografi**: Plus Jakarta Sans (Google Fonts)
+- **Desain UI**: Bersih, minimalis tanpa icon branding berlebih, modern dark glassmorphism login, responsive drawer sidebar pada perangkat mobile.
 
-### Modul Panel Admin:
-1. **Dashboard Overview**: Ringkasan KPI sensor, status koneksi ESP32 online/offline, quick toggle kipas, alert belum dibaca, dan grafik tren real-time.
-2. **Manajemen User (CRUD)**: Tambah, edit, cari, filter role (`admin` / `operator`), dan hapus user.
-3. **Manajemen Perangkat IoT (CRUD)**: Kelola node mikrokontroler ESP32, tipe perangkat, lokasi penempatan, dan status.
-4. **Monitoring Sensor**: Tabel log telemetri lengkap, statistik agregat rata-rata, filter rentang waktu (today, 7days, 30days), dan visualisasi multi-chart.
-5. **Ambang Batas (Thresholds)**: Konfigurasi batas toleransi minimum & maksimum untuk 8 sensor (suhu, kelembaban, air sawah %, NPK, cahaya, UV).
-6. **Kontrol Aktuator & Log**: Kontrol kipas ventilasi (ON/OFF/AUTO) serta riwayat eksekusi sistem vs operator.
-7. **Peringatan & Alert**: Log peringatan kritis, filter status belum dibaca, dan tombol tandai semua dibaca.
-8. **Oryza Vision**: Galeri arsip foto daun hasil scan penyakit dan skor keyakinan (*confidence*).
+### Kredensial Akun Dummy Default (Database Seeder)
 
+Database seeder menyediakan akun bawaan siap pakai untuk keperluan *development* dan demonstrasi:
 
-## Stack
+| Role | Alamat Email | Kata Sandi | Hak Akses |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin@padibackend.test` | `password` | Akses penuh: Manajemen Pengguna, Konfigurasi Perangkat, Ambang Batas, Aktuator, Monitoring Sensor, Log Alert, Arsip Vision |
+| **Operator** | `operator@padibackend.test` | `password` | Akses operasional: Dashboard, Monitoring Sensor, Kontrol Kipas, Ambang Batas, Log Alert, Arsip Vision |
 
-- PHP 8.4
-- Laravel 13
-- Laravel Sanctum 4
-- MySQL
-- `php-mqtt/client`
-- PHPUnit 12
+---
 
-## Instalasi
+## Modul Panel Admin
+
+1. **Dashboard**: Ringkasan KPI sensor lingkungan (suhu, kelembaban, ketinggian air sawah, NPK, cahaya & UV), status node ESP32 (*online/offline*), tombol kendali cepat kipas, indikator peringatan aktif, serta grafik tren 30 titik data terakhir.
+2. **Monitoring Sensor**: Agregasi statistik rata-rata pembacaan, visualisasi 50 data terakhir, filter fleksibel (hari ini, 7 hari, 30 hari), dan tabel log telemetri dengan pagination.
+3. **Kontrol Aktuator**: Kartu kendali status kipas (`Hidupkan`, `Matikan`, `Mode Otomatis`) dan tabel riwayat audit perintah (perintah, sumber pemicu, operator pengeksekusi, dan catatan).
+4. **Ambang Batas (Thresholds)**: Konfigurasi batas toleransi aman minimum & maksimum untuk 8 sensor (suhu, kelembaban, ketinggian air, N, P, K, intensitas cahaya, dan UV) beserta tombol reset ke nilai default.
+5. **Perangkat IoT (CRUD)**: Manajemen node mikrokontroler (ESP32, kamera, gateway), monitoring status koneksi (*heartbeat* terakhir), dan lokasi penempatan.
+6. **Log Peringatan**: Manajemen notifikasi anomali sensor, filter tingkat keparahan (`INFO`, `WARNING`, `CRITICAL`), status baca/belum dibaca, serta tombol *Tandai Semua Dibaca*.
+7. **Deteksi Penyakit (Oryza Vision)**: Galeri visual arsip scan daun padi dari aplikasi mobile, filter tipe diagnosis, label kelas penyakit, dan skor akurasi deteksi.
+8. **Manajemen User (CRUD)**: Kelola akun pengguna sistem, tambah operator/admin baru, ubah peran dan kata sandi, dengan proteksi penghapusan akun sendiri (*self-deletion protection*).
+
+---
+
+## Tech Stack
+
+- **Backend Framework**: Laravel 11 / Laravel 13 (PHP 8.4)
+- **Database**: MySQL 8.0+ / MariaDB
+- **Autentikasi**: Laravel Session Auth (Web Admin) & Laravel Sanctum (Mobile API)
+- **IoT & Telemetri**: `php-mqtt/client` (MQTT v3.1.1)
+- **Frontend Panel**: Blade Templates, Tailwind CSS, Alpine.js, Lucide Icons, Chart.js
+- **Tipografi**: Plus Jakarta Sans
+- **Unit & Feature Testing**: PHPUnit 12
+
+---
+
+## Panduan Instalasi & Menjalankan Sistem
+
+### 1. Kloning & Dependensi
 
 ```bash
+git clone https://github.com/Argeswara-ops/padibackend.git
+cd padibackend
 composer install
+```
+
+### 2. Konfigurasi Environment
+
+Salin file `.env.example` menjadi `.env`:
+
+```bash
 cp .env.example .env
 php artisan key:generate
-php artisan migrate --seed
-php artisan storage:link
 ```
 
-Jalankan API dan listener MQTT pada terminal terpisah:
-
-```bash
-php artisan serve
-
-php artisan serve --host=0.0.0.0 --port=8000
-
-```
-
-```bash
-php artisan mqtt:subscribe
-```
-
-Alias berikut juga tersedia:
-
-```bash
-php artisan mqtt:listen
-```
-
-Listener MQTT harus tetap aktif agar heartbeat dan data ESP32 diproses.
-
-## Environment
-
-Konfigurasi database:
+Sesuaikan konfigurasi database dan MQTT pada file `.env`:
 
 ```env
 DB_CONNECTION=mysql
@@ -86,196 +92,107 @@ DB_PORT=3306
 DB_DATABASE=padibackend
 DB_USERNAME=root
 DB_PASSWORD=
-```
 
-Konfigurasi broker MQTT publik untuk development:
-
-```env
 MQTT_HOST=broker.hivemq.com
 MQTT_PORT=1883
 MQTT_CLIENT_ID=laravel_oryza_smart
-MQTT_USERNAME=
-MQTT_PASSWORD=
 MQTT_DEFAULT_DEVICE_ID=ESP32-01
 MQTT_SENSOR_TOPIC=oryza-smart/ESP32-01/sensors
 MQTT_STATUS_TOPIC=oryza-smart/ESP32-01/status
 MQTT_FAN_STATUS_TOPIC=oryza-smart/ESP32-01/actuator/fan/status
 MQTT_FAN_COMMAND_TOPIC=oryza-smart/ESP32-01/actuator/fan/command
 MQTT_FAN_COMMAND_PAYLOAD=wokwi_json
-MQTT_LAST_WILL_TOPIC=oryza-smart/backend/status
 ```
 
-Setelah mengubah `.env`, jalankan:
+### 3. Migrasi Database & Seeding Akun
+
+Jalankan migrasi tabel beserta *seeder* data default (termasuk akun Administrator dan Operator):
 
 ```bash
-php artisan config:clear
+php artisan migrate --seed
+php artisan storage:link
 ```
 
-Broker publik cocok untuk development, tetapi tidak menyediakan kepemilikan topic. Production sebaiknya memakai broker privat dengan autentikasi, ACL topic, dan TLS.
+### 4. Menjalankan Server Web & Listener MQTT
 
-Konfigurasi Oryza Vision untuk upload gambar dari Flutter:
-
-```env
-ORYZA_VISION_URL=http://127.0.0.1:8000
-ORYZA_VISION_API_KEY=
-```
-
-## Kontrak MQTT ESP32
-
-ESP32 mengirim heartbeat ke:
-
-```text
-oryza-smart/ESP32-01/status
-```
-
-Payload online dan offline:
-
-```json
-{"status":"ON"}
-```
-
-```json
-{"status":"OFF"}
-```
-
-Backend juga menerima payload teks polos `online` dan `offline` seperti yang dipakai kode testing pada `docs/ESP.MD`. Semua bentuk tersebut dinormalisasi menjadi `ONLINE/OFFLINE`.
-
-ESP32 mengirim pembacaan sensor ke:
-
-```text
-oryza-smart/ESP32-01/sensors
-```
-
-Payload minimum untuk testing satu sensor DHT11:
-
-```json
-{
-  "device": "ESP32-01",
-  "temperature": 28.5,
-  "humidity": 74
-}
-```
-
-Field NPK, cahaya, UV, ultrasonik, ketinggian air, dan kipas bersifat opsional. Payload lengkap yang didukung:
-
-```json
-{
-  "device_id": "ESP32-01",
-  "uptime_s": 120,
-  "temperature": 28.5,
-  "humidity": 74,
-  "npk": {"n": 45, "p": 25, "k": 35},
-  "light": {"percent": 65, "uv_index": 3.2},
-  "ultrasonic": {"distance_cm": 18, "level_percent": 72},
-  "fan": {"state": "OFF", "mode": "AUTO"}
-}
-```
-
-ESP32 menerima command kipas dari:
-
-```text
-oryza-smart/ESP32-01/actuator/fan/command
-```
-
-Command manual:
-
-```json
-{"state":"ON","mode":"MANUAL"}
-```
-
-Command otomatis:
-
-```json
-{"mode":"AUTO"}
-```
-
-Setelah menjalankan command, ESP32 mengirim feedback aktual ke:
-
-```text
-oryza-smart/ESP32-01/actuator/fan/status
-```
-
-```json
-{"state":"ON","mode":"AUTO"}
-```
-
-## Endpoint Utama
-
-Endpoint publik:
-
-```text
-POST /api/login
-```
-
-Endpoint berikut memerlukan bearer token Sanctum:
-
-```text
-POST /api/logout
-GET  /api/user
-GET  /api/dashboard
-GET  /api/devices
-GET  /api/devices/{id}
-GET  /api/devices/{id}/status
-GET  /api/sensors/latest
-GET  /api/sensors/history
-GET  /api/thresholds
-PUT  /api/thresholds/{sensorType}
-GET  /api/actuators/fan/status
-POST /api/actuators/fan/control
-GET  /api/actuators/logs
-GET  /api/alerts
-GET  /api/alerts/{id}
-POST /api/alerts/{id}/read
-GET  /api/recommendations
-GET  /api/recommendations/latest
-GET  /api/recommendations/{id}
-POST /api/paddy/predict
-POST /api/paddy/predict/realtime
-GET  /api/vision/scans
-POST /api/vision/scans
-GET  /api/vision/scans/{visionScan}
-```
-
-Route `/api/cameras`, `/api/detections`, dan `/api/vision/detections` sudah tidak tersedia.
-
-Kontrak request dan response lengkap tersedia di [`docs/API_ENDPOINTS_FLUTTER.md`](docs/API_ENDPOINTS_FLUTTER.md).
-
-## Simulator
-
-Simulasi data sensor langsung ke database:
+Jalankan web server Laravel:
 
 ```bash
+php artisan serve
+# Atau agar dapat diakses oleh emulator/device eksternal:
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Buka terminal kedua dan jalankan background listener MQTT:
+
+```bash
+php artisan mqtt:subscribe
+# atau alias:
+php artisan mqtt:listen
+```
+
+> **Catatan**: Listener MQTT harus tetap berjalan agar data sensor dan *heartbeat* dari ESP32 dapat diproses dan disimpan ke database secara real-time.
+
+---
+
+## Simulator Data IoT (Development)
+
+Untuk menguji fitur tanpa perangkat fisik ESP32, gunakan simulator bawaan:
+
+```bash
+# Simulasi injeksi 10 data sensor langsung ke database
 php artisan nursery:simulate --count=10 --scenario=mixed
-```
 
-Simulasi ESP32 melalui broker MQTT:
-
-```bash
+# Simulasi pengiriman data ESP32 melalui broker MQTT HiveMQ
 php artisan mqtt:simulate-device --device=ESP32-01 --scenario=mixed --count=10 --interval=1
-```
 
-Tambahkan feedback kipas bila diperlukan:
-
-```bash
+# Simulasi kondisi kritis dengan feedback kipas ON
 php artisan mqtt:simulate-device --device=ESP32-01 --scenario=critical --count=5 --fan-status=ON
 ```
 
-Scenario yang tersedia: `normal`, `warning`, `critical`, dan `mixed`.
+Pilihan skenario: `normal`, `warning`, `critical`, `mixed`.
 
-## Testing dan Formatting
+---
+
+## Endpoint REST API (Mobile Flutter)
+
+### Publik
+- `POST /api/login` : Login mobile dan perolehan Sanctum Bearer Token
+
+### Terproteksi Sanctum (Bearer Token)
+- `POST /api/logout` : Revoke token dan logout
+- `GET  /api/user` : Profil pengguna yang sedang login
+- `GET  /api/dashboard` : Ringkasan data dasbor pembibitan
+- `GET  /api/devices` : Daftar status perangkat IoT
+- `GET  /api/sensors/latest` : Pembacaan sensor terkini
+- `GET  /api/sensors/history` : Riwayat pembacaan sensor
+- `GET  /api/thresholds` : Daftar ambang batas sensor
+- `PUT  /api/thresholds/{sensorType}` : Pembaruan batas toleransi sensor
+- `GET  /api/actuators/fan/status` : Status kipas terkini
+- `POST /api/actuators/fan/control` : Perintah kontrol kipas (`ON`/`OFF`/`AUTO`)
+- `GET  /api/actuators/logs` : Log audit perintah aktuator
+- `GET  /api/alerts` : Daftar notifikasi peringatan anomali
+- `POST /api/alerts/{id}/read` : Tandai peringatan telah dibaca
+- `POST /api/user/fcm-token` : Pendaftaran Firebase Cloud Messaging token perangkat
+- `DELETE /api/user/fcm-token` : Hapus FCM token saat logout
+- `POST /api/vision/scans` : Unggah foto daun padi untuk prediksi & sinkronisasi
+
+Dokumentasi spesifikasi API lengkap tersedia di [`docs/API_ENDPOINTS_FLUTTER.md`](docs/API_ENDPOINTS_FLUTTER.md).
+
+---
+
+## Pengujian Otomatis (Testing)
+
+Seluruh fitur backend, autentikasi web, API Sanctum, dan kontrol panel admin telah diuji secara komprehensif:
 
 ```bash
-php artisan test --compact
-vendor/bin/pint --dirty --format agent
+php artisan test
 ```
 
-## Deployment
+Hasil pengujian otomatis saat ini: **44/44 tests passed (100% green)**.
 
-Isi secret production melalui environment platform, lalu jalankan:
+---
 
-```bash
-php artisan migrate --force
-php artisan config:cache
-```
+## Lisensi & Hak Cipta
 
-Jalankan `php artisan mqtt:subscribe` sebagai proses background yang dipantau process manager. Laravel scheduler juga harus dijalankan agar perangkat tanpa heartbeat ditandai offline.
+Dikembangkan oleh **Tim Argeswara / Oryza Smart Paddy Team**. Hak Cipta dilindungi undang-undang.

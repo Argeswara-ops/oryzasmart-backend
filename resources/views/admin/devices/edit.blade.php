@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Perangkat')
-@section('page_title', 'Edit Perangkat: ' . $device->device_code)
+@section('page_title', 'Edit Perangkat')
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
@@ -9,14 +9,14 @@
     <div class="flex items-center justify-between">
         <a href="{{ route('admin.devices.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Kembali ke Daftar Perangkat
+            Kembali
         </a>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-slate-800">Ubah Konfigurasi Perangkat</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Perbarui informasi node mikrokontroler.</p>
+            <h3 class="text-base font-bold text-slate-800">Ubah Node</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Perbarui konfigurasi {{ $device->device_code }}.</p>
         </div>
 
         <form method="POST" action="{{ route('admin.devices.update', $device) }}" class="space-y-4">
@@ -78,4 +78,3 @@
 
 </div>
 @endsection
-

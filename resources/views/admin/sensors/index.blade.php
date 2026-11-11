@@ -1,35 +1,35 @@
 @extends('layouts.admin')
 
-@section('title', 'Monitoring Data Sensor')
-@section('page_title', 'Monitoring & Riwayat Telemetri Sensor')
+@section('title', 'Monitoring Sensor')
+@section('page_title', 'Monitoring Sensor')
 
 @section('content')
 <div class="space-y-6">
 
     <!-- Top Statistics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Pembacaan</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Data</span>
             <div class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($stats['total_records']) }}</div>
-            <p class="text-[11px] text-slate-400 mt-1">Data log tersimpan di database</p>
+            <p class="text-[11px] text-slate-400 mt-1">Data log tersimpan.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata-Rata Suhu</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata Suhu</span>
             <div class="text-2xl font-bold text-amber-600 mt-1">{{ $stats['avg_temp'] }} °C</div>
-            <p class="text-[11px] text-slate-400 mt-1">Keseluruhan siklus tanam</p>
+            <p class="text-[11px] text-slate-400 mt-1">Suhu rata-rata sawah.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata-Rata Kelembaban</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata Kelembaban</span>
             <div class="text-2xl font-bold text-cyan-600 mt-1">{{ $stats['avg_humidity'] }} %</div>
-            <p class="text-[11px] text-slate-400 mt-1">Kelembaban udara sekitar</p>
+            <p class="text-[11px] text-slate-400 mt-1">Kelembaban udara.</p>
         </div>
 
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata-Rata Air Sawah</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rata Air</span>
             <div class="text-2xl font-bold text-emerald-600 mt-1">{{ $stats['avg_water'] }} %</div>
-            <p class="text-[11px] text-slate-400 mt-1">Estimasi kedalaman air sawah</p>
+            <p class="text-[11px] text-slate-400 mt-1">Kedalaman air sawah.</p>
         </div>
     </div>
 
@@ -50,13 +50,13 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <label for="range" class="text-xs font-semibold text-slate-600">Rentang Waktu:</label>
+                <label for="range" class="text-xs font-semibold text-slate-600">Rentang:</label>
                 <select name="range" id="range" onchange="this.form.submit()"
                         class="py-2 px-3 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:border-emerald-500">
                     <option value="all" {{ request('range') === 'all' ? 'selected' : '' }}>Semua Data</option>
-                    <option value="today" {{ request('range') === 'today' ? 'selected' : '' }}>Hari Ini (Today)</option>
-                    <option value="7days" {{ request('range') === '7days' ? 'selected' : '' }}>7 Hari Terakhir</option>
-                    <option value="30days" {{ request('range') === '30days' ? 'selected' : '' }}>30 Hari Terakhir</option>
+                    <option value="today" {{ request('range') === 'today' ? 'selected' : '' }}>Hari Ini</option>
+                    <option value="7days" {{ request('range') === '7days' ? 'selected' : '' }}>7 Hari</option>
+                    <option value="30days" {{ request('range') === '30days' ? 'selected' : '' }}>30 Hari</option>
                 </select>
             </div>
 
@@ -70,10 +70,13 @@
 
     <!-- Multi-Series Chart Card -->
     <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-        <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-            <i data-lucide="line-chart" class="w-5 h-5 text-emerald-600"></i>
-            Visualisasi Tren Sensor (50 Sampel Terakhir)
-        </h3>
+        <div class="mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-5 h-5 text-emerald-600"></i>
+                Tren Sensor
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Visualisasi 50 data terakhir.</p>
+        </div>
 
         <div class="h-80 w-full">
             <canvas id="sensorDetailedChart"></canvas>
@@ -83,15 +86,18 @@
     <!-- Telemetry Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-slate-800 text-sm">Tabel Log Pembacaan Sensor</h3>
-            <span class="text-xs text-slate-500">Urut dari waktu terbaru</span>
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">Log Sensor</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Urutan data telemetri terkini.</p>
+            </div>
+            <span class="text-xs text-slate-400 font-mono">Real-time</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-700">
                 <thead class="bg-slate-50 border-b border-slate-200/80 uppercase tracking-wider text-[10px] text-slate-500 font-semibold">
                     <tr>
-                        <th class="py-3 px-4">Waktu Record</th>
+                        <th class="py-3 px-4">Waktu</th>
                         <th class="py-3 px-4">Device</th>
                         <th class="py-3 px-4">Suhu (°C)</th>
                         <th class="py-3 px-4">Kelembaban (%)</th>
@@ -99,7 +105,7 @@
                         <th class="py-3 px-4">Jarak (cm)</th>
                         <th class="py-3 px-4">NPK (mg/kg)</th>
                         <th class="py-3 px-4">Cahaya (%)</th>
-                        <th class="py-3 px-4">UV Index</th>
+                        <th class="py-3 px-4">Indeks UV</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -118,7 +124,7 @@
                                 {{ $row->humidity }}
                             </td>
                             <td class="py-3 px-4 font-semibold text-emerald-600">
-                                {{ $row->water_level_percent ?? $row->level_percent ?? '-' }}%
+                                {{ $row->water_level_percent ?? $row->level_percent ?? '-' }} %
                             </td>
                             <td class="py-3 px-4 text-slate-600">
                                 {{ $row->distance_cm ?? $row->ultrasonic ?? '-' }}
@@ -129,7 +135,7 @@
                                 <span class="font-bold text-slate-800">{{ $row->potassium ?? '-' }}</span>
                             </td>
                             <td class="py-3 px-4 text-slate-600">
-                                {{ $row->light_percent ?? $row->light ?? '-' }}%
+                                {{ $row->light_percent ?? $row->light ?? '-' }} %
                             </td>
                             <td class="py-3 px-4 text-slate-600">
                                 {{ number_format($row->uv_index, 1) }}
@@ -200,15 +206,24 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: false, grid: { color: '#f1f5f9' } },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: false, 
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } }
+                    }
                 },
                 plugins: {
-                    legend: { position: 'top' }
+                    legend: { 
+                        position: 'top',
+                        labels: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '500' } }
+                    }
                 }
             }
         });
     });
 </script>
 @endpush
-

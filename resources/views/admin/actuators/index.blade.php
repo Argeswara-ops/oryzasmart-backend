@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Kontrol Kipas & Aktuator')
-@section('page_title', 'Kontrol Aktuator & Log Otomasi')
+@section('title', 'Kontrol Aktuator')
+@section('page_title', 'Kontrol Aktuator')
 
 @section('content')
 <div class="space-y-6">
 
     <!-- Actuators Control Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         @forelse($actuators as $actuator)
             @php
                 $isOn = $actuator->status === 'ON';
@@ -49,27 +49,27 @@
 
                         <div class="grid grid-cols-2 gap-2">
                             <button type="submit" name="command" value="ON" 
-                                    class="py-2 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ $isOn ? 'bg-emerald-700 text-white shadow' : 'bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700' }}">
+                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ $isOn ? 'bg-emerald-700 text-white shadow' : 'bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700' }}">
                                 <i data-lucide="power" class="w-3.5 h-3.5"></i>
-                                Nyalakan
+                                Hidupkan
                             </button>
                             <button type="submit" name="command" value="OFF"
-                                    class="py-2 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ !$isOn ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700' }}">
+                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ !$isOn ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700' }}">
                                 <i data-lucide="power-off" class="w-3.5 h-3.5"></i>
                                 Matikan
                             </button>
                         </div>
 
                         <button type="submit" name="command" value="AUTO"
-                                class="w-full py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 font-semibold text-xs text-slate-700 flex items-center justify-center gap-1.5">
+                                class="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 font-semibold text-xs text-slate-700 flex items-center justify-center gap-1.5">
                             <i data-lucide="bot" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            Jalankan Mode Otomatis (AUTO)
+                            Mode Otomatis
                         </button>
                     </form>
                 </div>
             </div>
         @empty
-            <div class="col-span-3 text-center py-8 bg-white rounded-2xl border border-slate-200 p-6 text-slate-400 text-xs">
+            <div class="col-span-full text-center py-8 bg-white rounded-2xl border border-slate-200 p-6 text-slate-400 text-xs">
                 Belum ada data aktuator yang terdaftar di database.
             </div>
         @endforelse
@@ -79,8 +79,8 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h3 class="font-bold text-slate-800 text-sm">Riwayat & Audit Log Perintah Aktuator</h3>
-                <p class="text-xs text-slate-500">Mencatat perintah yang dieksekusi otomatis oleh aturan sistem maupun manual oleh operator</p>
+                <h3 class="font-bold text-slate-800 text-sm">Log Perintah</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Riwayat eksekusi sistem dan operator.</p>
             </div>
 
             <!-- Filter By Source -->
@@ -101,12 +101,12 @@
             <table class="w-full text-left text-xs text-slate-700">
                 <thead class="bg-slate-50 border-b border-slate-200/80 uppercase tracking-wider text-[10px] text-slate-500 font-semibold">
                     <tr>
-                        <th class="py-3 px-4">Waktu Eksekusi</th>
+                        <th class="py-3 px-4">Waktu</th>
                         <th class="py-3 px-4">Aktuator</th>
-                        <th class="py-3 px-4">Perintah (Action)</th>
-                        <th class="py-3 px-4">Sumber Pemicu</th>
+                        <th class="py-3 px-4">Perintah</th>
+                        <th class="py-3 px-4">Sumber</th>
                         <th class="py-3 px-4">Operator</th>
-                        <th class="py-3 px-4">Catatan / Detail</th>
+                        <th class="py-3 px-4">Catatan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -119,8 +119,8 @@
                                 {{ $log->actuator ? $log->actuator->name : 'Aktuator' }}
                             </td>
                             <td class="py-3 px-4">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $log->action === 'ON' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700' }}">
-                                    {{ $log->action }}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($log->command ?? $log->action) === 'ON' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700' }}">
+                                    {{ $log->command ?? $log->action }}
                                 </span>
                             </td>
                             <td class="py-3 px-4">
@@ -129,7 +129,7 @@
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-slate-600">
-                                {{ $log->user ? $log->user->name : ($log->source === 'SYSTEM' ? 'Smart Automation Engine' : '-') }}
+                                {{ $log->user ? $log->user->name : ($log->source === 'SYSTEM' ? 'Otomasi Sistem' : '-') }}
                             </td>
                             <td class="py-3 px-4 text-slate-500 text-[11px]">
                                 {{ $log->notes ?? '-' }}
@@ -155,4 +155,3 @@
 
 </div>
 @endsection
-

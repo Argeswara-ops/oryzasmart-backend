@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Deteksi Penyakit Padi')
-@section('page_title', 'Hasil Deteksi Penyakit Tanaman Padi (Oryza Vision)')
+@section('title', 'Deteksi Penyakit')
+@section('page_title', 'Deteksi Penyakit')
 
 @section('content')
 <div class="space-y-6">
@@ -9,17 +9,17 @@
     <!-- Top Info & Filter Bar -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <form method="GET" action="{{ route('admin.vision.index') }}" class="flex flex-wrap items-center gap-3 flex-1">
-            <div class="relative flex-1 min-w-[200px] max-w-sm">
+            <div class="relative flex-1 min-w-[180px] max-w-sm">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <i data-lucide="search" class="w-4 h-4"></i>
                 </div>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama penyakit..."
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari penyakit..."
                        class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
             </div>
 
             <select name="scan_type" onchange="this.form.submit()" 
                     class="py-2 px-3 text-xs rounded-xl bg-white border border-slate-200 text-slate-700 focus:outline-none focus:border-emerald-500">
-                <option value="">Semua Tipe Scan</option>
+                <option value="">Semua Tipe</option>
                 <option value="crop_health" {{ request('scan_type') === 'crop_health' ? 'selected' : '' }}>Crop Health</option>
                 <option value="leaf_blast" {{ request('scan_type') === 'leaf_blast' ? 'selected' : '' }}>Leaf Blast</option>
                 <option value="brown_spot" {{ request('scan_type') === 'brown_spot' ? 'selected' : '' }}>Brown Spot</option>
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Vision Scans Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         @forelse($scans as $scan)
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow">
                 <div>
@@ -44,14 +44,14 @@
                         @else
                             <div class="text-center text-slate-400">
                                 <i data-lucide="image-off" class="w-8 h-8 mx-auto mb-1"></i>
-                                <span class="text-[10px]">Gambar tidak tersedia</span>
+                                <span class="text-[10px]">Gambar kosong</span>
                             </div>
                         @endif
 
                         <!-- Confidence Badge Overlay -->
                         <div class="absolute top-3 right-3">
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md {{ $scan->confidence >= 0.8 ? 'bg-emerald-500 text-white' : ($scan->confidence >= 0.5 ? 'bg-amber-500 text-white' : 'bg-red-500 text-white') }}">
-                                {{ round($scan->confidence * 100, 1) }}% Confidence
+                                {{ round($scan->confidence * 100, 1) }}% Akurasi
                             </span>
                         </div>
                     </div>
@@ -73,14 +73,14 @@
                         <p class="text-[11px] text-slate-500 font-mono mt-0.5">Label: {{ $scan->class_name }}</p>
 
                         <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                            <span>Klien: <strong class="text-slate-700">{{ $scan->user ? $scan->user->name : 'Operator Mobile' }}</strong></span>
+                            <span>User: <strong class="text-slate-700">{{ $scan->user ? $scan->user->name : 'Operator' }}</strong></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-4 pt-0 flex justify-end">
                     <form method="POST" action="{{ route('admin.vision.destroy', $scan) }}" 
-                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus arsip foto scan ini?')">
+                          onsubmit="return confirm('Hapus arsip scan ini?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-semibold p-1">
@@ -93,17 +93,16 @@
         @empty
             <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200/80 p-6 text-slate-400 text-xs">
                 <i data-lucide="scan-line" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-                Belum ada arsip riwayat scan penyakit daun yang tersimpan.
+                Belum ada arsip riwayat scan penyakit.
             </div>
         @endforelse
     </div>
 
     @if($scans->hasPages())
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
+        <div class="p-4 bg-white rounded-2xl border border-slate-200/80">
             {{ $scans->links() }}
         </div>
     @endif
 
 </div>
 @endsection
-

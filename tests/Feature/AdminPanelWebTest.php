@@ -4,12 +4,20 @@ namespace Tests\Feature;
 
 use App\Models\Device;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class AdminPanelWebTest extends TestCase
 {
     use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+    }
+
     public function test_guest_is_redirected_to_login(): void
     {
         $response = $this->get('/admin/dashboard');
@@ -20,7 +28,7 @@ class AdminPanelWebTest extends TestCase
     {
         $response = $this->get('/login');
         $response->assertStatus(200);
-        $response->assertSee('ORYZA SMART PADDY');
+        $response->assertSee('Masuk Panel');
     }
 
     public function test_operator_can_login_and_view_dashboard(): void
@@ -31,7 +39,7 @@ class AdminPanelWebTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/dashboard');
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Ringkasan IoT');
+        $response->assertSee('Dashboard');
     }
 
     public function test_admin_can_view_users_crud(): void
@@ -42,7 +50,7 @@ class AdminPanelWebTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin/users');
         $response->assertStatus(200);
-        $response->assertSee('Manajemen Pengguna Sistem');
+        $response->assertSee('Manajemen User');
     }
 
     public function test_admin_can_create_new_user(): void

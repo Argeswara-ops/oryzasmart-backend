@@ -13,6 +13,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Akun Administrator Default
+        User::firstOrCreate(
+            ['email' => 'admin@padibackend.test'],
+            [
+                'name' => 'Administrator',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+            ],
+        );
+
+        // Akun Operator Default
         User::firstOrCreate(
             ['email' => 'operator@padibackend.test'],
             [

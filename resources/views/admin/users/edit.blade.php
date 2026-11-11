@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Pengguna')
-@section('page_title', 'Edit Pengguna: ' . $user->name)
+@section('title', 'Edit User')
+@section('page_title', 'Edit User')
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
@@ -9,14 +9,14 @@
     <div class="flex items-center justify-between">
         <a href="{{ route('admin.users.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Kembali ke Daftar Pengguna
+            Kembali
         </a>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-slate-800">Perbarui Informasi User</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Ubah data atau perbarui password pengguna ini.</p>
+            <h3 class="text-base font-bold text-slate-800">Ubah User</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Perbarui akun {{ $user->name }}.</p>
         </div>
 
         <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-4">
@@ -36,7 +36,7 @@
             </div>
 
             <div>
-                <label for="role" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Role / Hak Akses</label>
+                <label for="role" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Role Akses</label>
                 <select id="role" name="role" required
                         class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
                     <option value="operator" {{ old('role', $user->role) === 'operator' ? 'selected' : '' }}>Operator</option>
@@ -45,8 +45,8 @@
             </div>
 
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 mt-2">
-                <p class="text-xs font-bold text-slate-700 mb-1">Ubah Kata Sandi (Opsional)</p>
-                <p class="text-[11px] text-slate-500 mb-3">Biarkan kosong jika tidak ingin mengubah password user.</p>
+                <p class="text-xs font-bold text-slate-700 mb-0.5">Kata Sandi (Opsional)</p>
+                <p class="text-[11px] text-slate-500 mb-3">Kosongkan jika tidak diubah.</p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -57,10 +57,10 @@
                     </div>
 
                     <div>
-                        <label for="password_confirmation" class="block text-[11px] font-semibold text-slate-600 mb-1">Konfirmasi Password Baru</label>
+                        <label for="password_confirmation" class="block text-[11px] font-semibold text-slate-600 mb-1">Ulangi Password</label>
                         <input type="password" id="password_confirmation" name="password_confirmation" minlength="6"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500"
-                               placeholder="Ulangi password baru">
+                               placeholder="Konfirmasi password">
                     </div>
                 </div>
             </div>
@@ -78,4 +78,3 @@
 
 </div>
 @endsection
-

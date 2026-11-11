@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel') - Oryza Smart Paddy</title>
+    <title>@yield('title', 'Admin Panel') - Oryza IoT</title>
 
-    <!-- Google Fonts Inter -->
+    <!-- Google Fonts Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -46,6 +46,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -73,7 +76,7 @@
                     <h1 class="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
                         ORYZA <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">IoT</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Admin Control Panel</p>
+                    <p class="text-xs text-slate-400">Panel Admin</p>
                 </div>
             </a>
             <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white p-1">
@@ -83,58 +86,58 @@
 
         <!-- Navigation Links -->
         <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 px-3 mb-2">Menu Utama</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-3 mb-2">Menu Utama</div>
 
             <!-- Dashboard -->
             <a href="{{ route('admin.dashboard') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                 <span>Dashboard</span>
             </a>
 
             <!-- Sensors Monitoring -->
             <a href="{{ route('admin.sensors.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.sensors.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="activity" class="w-5 h-5"></i>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.sensors.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="activity" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                 <span>Monitoring Sensor</span>
             </a>
 
             <!-- Actuators & Fan -->
             <a href="{{ route('admin.actuators.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.actuators.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="fan" class="w-5 h-5"></i>
-                <span>Kontrol Kipas & Log</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.actuators.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="fan" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span>Kontrol Aktuator</span>
             </a>
 
             <!-- Thresholds -->
             <a href="{{ route('admin.thresholds.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.thresholds.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="sliders" class="w-5 h-5"></i>
-                <span>Ambang Batas (Threshold)</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.thresholds.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="sliders" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span>Ambang Batas</span>
             </a>
 
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 px-3 pt-4 mb-2">Analisis & Device</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-3 pt-4 mb-2">Analisis Data</div>
 
             <!-- Vision Scans -->
             <a href="{{ route('admin.vision.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.vision.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="scan" class="w-5 h-5"></i>
-                <span>Deteksi Penyakit (Vision)</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.vision.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="scan" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span>Deteksi Penyakit</span>
             </a>
 
             <!-- Devices -->
             <a href="{{ route('admin.devices.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.devices.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="cpu" class="w-5 h-5"></i>
-                <span>Perangkat ESP32</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.devices.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="cpu" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <span>Perangkat IoT</span>
             </a>
 
             <!-- Alerts -->
             <a href="{{ route('admin.alerts.index') }}" 
-               class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.alerts.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+               class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.alerts.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
                 <div class="flex items-center gap-3">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    <span>Log Peringatan (Alerts)</span>
+                    <i data-lucide="bell" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    <span>Log Peringatan</span>
                 </div>
                 @php
                     $unreadAlertsBadge = \App\Models\Alert::where('status', 'UNREAD')->count();
@@ -146,12 +149,12 @@
                 @endif
             </a>
 
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 px-3 pt-4 mb-2">Pengaturan Sistem</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-3 pt-4 mb-2">Pengaturan Sistem</div>
 
             <!-- Users CRUD -->
             <a href="{{ route('admin.users.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all {{ request()->routeIs('admin.users.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                <i data-lucide="users" class="w-5 h-5"></i>
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.users.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                 <span>Manajemen User</span>
             </a>
         </nav>
@@ -187,7 +190,7 @@
                 <button @click="sidebarOpen = true" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
-                <h2 class="text-xl font-bold text-slate-800 tracking-tight">@yield('page_title', 'Dashboard')</h2>
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">@yield('page_title', 'Dashboard')</h2>
             </div>
 
             <div class="flex items-center gap-3">
@@ -222,7 +225,7 @@
                 <div class="mb-4 flex items-center justify-between p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 rounded-r-xl shadow-sm">
                     <div class="flex items-center gap-3">
                         <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i>
-                        <span class="text-sm font-medium">{{ session('success') }}</span>
+                        <span class="text-xs sm:text-sm font-medium">{{ session('success') }}</span>
                     </div>
                     <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-800 p-1">
                         <i data-lucide="x" class="w-4 h-4"></i>
@@ -234,7 +237,7 @@
                 <div class="mb-4 flex items-center justify-between p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-r-xl shadow-sm">
                     <div class="flex items-center gap-3">
                         <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-                        <span class="text-sm font-medium">{{ session('error') }}</span>
+                        <span class="text-xs sm:text-sm font-medium">{{ session('error') }}</span>
                     </div>
                     <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">
                         <i data-lucide="x" class="w-4 h-4"></i>
@@ -244,11 +247,11 @@
 
             @if($errors->any())
                 <div class="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 rounded-r-xl shadow-sm">
-                    <div class="flex items-center gap-2 font-semibold text-sm mb-1">
+                    <div class="flex items-center gap-2 font-semibold text-xs sm:text-sm mb-1">
                         <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
-                        Terjadi kesalahan validasi input:
+                        Kesalahan Validasi:
                     </div>
-                    <ul class="list-disc list-inside text-xs space-y-0.5 pl-6">
+                    <ul class="list-disc list-inside text-xs space-y-0.5 pl-4 sm:pl-6">
                         @foreach($errors->all() as $err)
                             <li>{{ $err }}</li>
                         @endforeach
@@ -264,7 +267,7 @@
 
         <!-- Footer -->
         <footer class="py-4 px-6 border-t border-slate-200/80 text-center text-xs text-slate-500">
-            &copy; {{ date('Y') }} Oryza IoT Monitoring & Otomasi Lahan Padi. Built with Laravel 11.
+            &copy; {{ date('Y') }} Oryza IoT. Monitoring dan Otomasi Pembibitan Padi.
         </footer>
     </div>
 </div>
@@ -277,4 +280,3 @@
 @stack('scripts')
 </body>
 </html>
-

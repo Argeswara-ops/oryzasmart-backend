@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Pengguna Baru')
-@section('page_title', 'Tambah Pengguna Baru')
+@section('title', 'Tambah User')
+@section('page_title', 'Tambah User')
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
@@ -9,14 +9,14 @@
     <div class="flex items-center justify-between">
         <a href="{{ route('admin.users.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Kembali ke Daftar Pengguna
+            Kembali
         </a>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-slate-800">Formulir Tambah User</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Lengkapi informasi akun di bawah ini untuk memberikan akses ke sistem.</p>
+            <h3 class="text-base font-bold text-slate-800">Formulir User</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Lengkapi data akun baru.</p>
         </div>
 
         <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
@@ -37,11 +37,11 @@
             </div>
 
             <div>
-                <label for="role" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Role / Hak Akses</label>
+                <label for="role" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Role Akses</label>
                 <select id="role" name="role" required
                         class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500">
                     <option value="operator" {{ old('role') === 'operator' ? 'selected' : '' }}>Operator (Akses operasional IoT & Actuator)</option>
-                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Akses penuh termasuk manajemen user)</option>
+                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Akses penuh sistem)</option>
                 </select>
             </div>
 
@@ -66,7 +66,7 @@
                     Batal
                 </a>
                 <button type="submit" class="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md shadow-emerald-900/20">
-                    Simpan Pengguna
+                    Simpan User
                 </button>
             </div>
         </form>
@@ -74,4 +74,3 @@
 
 </div>
 @endsection
-
