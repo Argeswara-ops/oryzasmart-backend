@@ -80,38 +80,64 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        // 3. Aktuator Kipas & Pompa
-        $actuator1 = Actuator::updateOrCreate(
-            ['device_id' => $device1->id, 'type' => 'fan'],
+        // 3. Aktuator (4 Unit: Pompa Air, Kipas/Fan, LED UV, Pompa Kabut)
+        $actuatorWaterPump = Actuator::updateOrCreate(
+            ['device_id' => $device1->id, 'type' => 'water_pump'],
             [
-                'name' => 'Pompa Air & Kipas 01',
+                'name' => 'Pompa Air',
                 'mode' => 'AUTO',
                 'status' => 'ON',
             ],
         );
 
-        $actuator2 = Actuator::updateOrCreate(
-            ['device_id' => $device2->id, 'type' => 'fan'],
+        $actuatorFan = Actuator::updateOrCreate(
+            ['device_id' => $device1->id, 'type' => 'fan'],
             [
-                'name' => 'Ventilasi Sawah 02',
+                'name' => 'Kipas / Fan',
+                'mode' => 'AUTO',
+                'status' => 'ON',
+            ],
+        );
+
+        $actuatorLedUv = Actuator::updateOrCreate(
+            ['device_id' => $device1->id, 'type' => 'led_uv'],
+            [
+                'name' => 'LED UV',
                 'mode' => 'AUTO',
                 'status' => 'OFF',
             ],
         );
 
-        // 4. Actuator Logs (Audit trail)
-        if (ActuatorLog::count() < 5) {
+        $actuatorMistPump = Actuator::updateOrCreate(
+            ['device_id' => $device1->id, 'type' => 'mist_pump'],
+            [
+                'name' => 'Pompa Kabut',
+                'mode' => 'AUTO',
+                'status' => 'OFF',
+            ],
+        );
+
+        // Hapus aktuator yang tidak termasuk 4 standar jika ada
+        Actuator::where('device_id', $device1->id)
+            ->whereNotIn('type', ['water_pump', 'fan', 'led_uv', 'mist_pump'])
+            ->delete();
+
+        // 4. Actuator Logs (Audit trail 4 unit aktuator)
+        if (ActuatorLog::count() < 8) {
             $logSamples = [
-                ['command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subMinutes(15)],
-                ['command' => 'ON', 'mode' => 'AUTO', 'source' => 'USER', 'prev' => 'OFF', 'new' => 'ON', 'user' => $operator->id, 'time' => now()->subHours(2)],
-                ['command' => 'OFF', 'mode' => 'MANUAL', 'source' => 'USER', 'prev' => 'ON', 'new' => 'OFF', 'user' => $admin->id, 'time' => now()->subHours(4)],
-                ['command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subHours(6)],
-                ['command' => 'OFF', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'ON', 'new' => 'OFF', 'user' => null, 'time' => now()->subHours(9)],
+                ['actuator' => $actuatorWaterPump, 'command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subMinutes(8)],
+                ['actuator' => $actuatorFan, 'command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subMinutes(20)],
+                ['actuator' => $actuatorLedUv, 'command' => 'OFF', 'mode' => 'MANUAL', 'source' => 'USER', 'prev' => 'ON', 'new' => 'OFF', 'user' => $operator->id, 'time' => now()->subHours(2)],
+                ['actuator' => $actuatorMistPump, 'command' => 'OFF', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'ON', 'new' => 'OFF', 'user' => null, 'time' => now()->subHours(3)],
+                ['actuator' => $actuatorWaterPump, 'command' => 'OFF', 'mode' => 'MANUAL', 'source' => 'USER', 'prev' => 'ON', 'new' => 'OFF', 'user' => $admin->id, 'time' => now()->subHours(5)],
+                ['actuator' => $actuatorFan, 'command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subHours(7)],
+                ['actuator' => $actuatorLedUv, 'command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subHours(10)],
+                ['actuator' => $actuatorMistPump, 'command' => 'ON', 'mode' => 'AUTO', 'source' => 'SYSTEM', 'prev' => 'OFF', 'new' => 'ON', 'user' => null, 'time' => now()->subHours(13)],
             ];
 
             foreach ($logSamples as $l) {
                 ActuatorLog::create([
-                    'actuator_id' => $actuator1->id,
+                    'actuator_id' => $l['actuator']->id,
                     'user_id' => $l['user'],
                     'command' => $l['command'],
                     'mode' => $l['mode'],

@@ -120,4 +120,42 @@ class AdminPanelWebTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('80 %');
     }
+
+    public function test_admin_can_view_four_actuator_types_and_controls(): void
+    {
+        $operator = User::factory()->create(['role' => 'operator']);
+
+        $response = $this->actingAs($operator)->get('/admin/actuators');
+        $response->assertStatus(200);
+        $response->assertSee('Kontrol Aktuator');
+        $response->assertSee('Pompa Air');
+        $response->assertSee('Kipas / Fan');
+        $response->assertSee('LED UV');
+        $response->assertSee('Pompa Kabut');
+
+        // Verify navbar does not contain ESP32-01: ONLINE
+        $response->assertDontSee('ESP32-01: ONLINE');
+        // Verify branding shows Oryza Smart
+        $response->assertSee('ORYZA <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">SMART</span>', false);
+    }
+
+    public function test_operator_can_control_actuator(): void
+    {
+        $operator = User::factory()->create(['role' => 'operator']);
+        $actuator = \App\Models\Actuator::first();
+
+        $response = $this->actingAs($operator)->post('/admin/actuators/control', [
+            'actuator_id' => $actuator->id,
+            'command' => 'ON',
+            'mode' => 'MANUAL',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('actuators', [
+            'id' => $actuator->id,
+            'status' => 'ON',
+            'mode' => 'MANUAL',
+        ]);
+    }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Perangkat IoT')
-@section('page_title', 'Perangkat IoT')
+@section('title', 'Perangkat Smart')
+@section('page_title', 'Perangkat Smart')
 
 @section('content')
 <div class="space-y-6">

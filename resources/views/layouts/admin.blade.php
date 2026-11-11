@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Panel') - Oryza IoT</title>
+    <title>@yield('title', 'Admin Panel') - Oryza Smart</title>
 
     <!-- Google Fonts Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,7 +74,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
-                        ORYZA <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">IoT</span>
+                        ORYZA <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">SMART</span>
                     </h1>
                     <p class="text-xs text-slate-400">Panel Admin</p>
                 </div>
@@ -129,7 +129,7 @@
             <a href="{{ route('admin.devices.index') }}" 
                class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all {{ request()->routeIs('admin.devices.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
                 <i data-lucide="cpu" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                <span>Perangkat IoT</span>
+                <span>Perangkat Smart</span>
             </a>
 
             <!-- Alerts -->
@@ -194,16 +194,6 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- ESP32 Device Quick Status -->
-                @php
-                    $espDevice = \App\Models\Device::where('type', 'esp32')->first();
-                    $isOnline = $espDevice && $espDevice->status === 'ONLINE';
-                @endphp
-                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full {{ $isOnline ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-700' }}">
-                    <span class="w-2.5 h-2.5 rounded-full {{ $isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500' }}"></span>
-                    <span class="text-xs font-semibold">{{ $espDevice ? $espDevice->device_code : 'ESP32' }}: {{ $isOnline ? 'ONLINE' : 'OFFLINE' }}</span>
-                </div>
-
                 <!-- Notification Dropdown Popup -->
                 <div class="relative" x-data="{ notifOpen: false }" @click.outside="notifOpen = false">
                     <button @click="notifOpen = !notifOpen" 
@@ -341,7 +331,7 @@
 
         <!-- Footer -->
         <footer class="py-4 px-6 border-t border-slate-200/80 text-center text-xs text-slate-500">
-            &copy; {{ date('Y') }} Oryza IoT. Monitoring dan Otomasi Pembibitan Padi.
+            &copy; {{ date('Y') }} Oryza Smart. Monitoring dan Otomasi Pembibitan Padi.
         </footer>
     </div>
 </div>

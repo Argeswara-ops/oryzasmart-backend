@@ -106,7 +106,7 @@
                     <div>
                         <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                             <i data-lucide="cpu" class="w-5 h-5 text-emerald-600"></i>
-                            Perangkat IoT
+                            Perangkat Smart
                         </h3>
                         <p class="text-xs text-slate-500 mt-0.5">Status koneksi node.</p>
                     </div>

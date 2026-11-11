@@ -6,70 +6,103 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Actuators Control Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+    <!-- Actuators Control Cards Grid: 2:2 Responsive Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
         @forelse($actuators as $actuator)
             @php
                 $isOn = $actuator->status === 'ON';
                 $isAuto = $actuator->mode === 'AUTO';
+                $type = strtolower($actuator->type ?? '');
+                $name = strtolower($actuator->name ?? '');
+
+                if (str_contains($type, 'water') || str_contains($type, 'air') || str_contains($name, 'pompa air')) {
+                    $icon = 'droplets';
+                    $desc = 'Irigasi & sirkulasi nutrisi tanaman';
+                    $iconActive = 'bg-sky-100 text-sky-600';
+                    $statusBadge = $isOn ? 'bg-sky-100 text-sky-700 ring-1 ring-sky-300' : 'bg-slate-100 text-slate-600';
+                } elseif (str_contains($type, 'mist') || str_contains($type, 'kabut') || str_contains($name, 'kabut')) {
+                    $icon = 'cloud-rain';
+                    $desc = 'Pengatur kelembaban mikro greenhouse';
+                    $iconActive = 'bg-cyan-100 text-cyan-600';
+                    $statusBadge = $isOn ? 'bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300' : 'bg-slate-100 text-slate-600';
+                } elseif (str_contains($type, 'led') || str_contains($type, 'uv') || str_contains($name, 'uv')) {
+                    $icon = 'sun';
+                    $desc = 'Sterilisasi jamur & suplemen spektrum cahaya';
+                    $iconActive = 'bg-purple-100 text-purple-600';
+                    $statusBadge = $isOn ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' : 'bg-slate-100 text-slate-600';
+                } else {
+                    $icon = 'fan';
+                    $desc = 'Sirkulasi udara & pendingin suhu ruang';
+                    $iconActive = 'bg-emerald-100 text-emerald-600';
+                    $statusBadge = $isOn ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-slate-100 text-slate-600';
+                }
             @endphp
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center justify-between mb-4">
+                    <!-- Header Kartu -->
+                    <div class="flex items-start justify-between gap-3 mb-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl {{ $isOn ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center">
-                                <i data-lucide="fan" class="w-6 h-6 {{ $isOn ? 'animate-spin' : '' }}"></i>
+                            <div class="w-12 h-12 rounded-2xl {{ $isOn ? $iconActive : 'bg-slate-100 text-slate-400' }} flex items-center justify-center shrink-0 border border-slate-100 shadow-sm">
+                                <i data-lucide="{{ $icon }}" class="w-6 h-6 {{ $isOn && $icon === 'fan' ? 'animate-spin' : '' }}"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 text-sm">{{ $actuator->name }}</h3>
-                                <p class="text-[11px] text-slate-500">Device: {{ $actuator->device ? $actuator->device->device_code : 'ESP32' }}</p>
+                                <h3 class="font-bold text-slate-900 text-base leading-tight">{{ $actuator->name }}</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">{{ $desc }}</p>
                             </div>
                         </div>
 
-                        <span class="px-2.5 py-1 text-[11px] font-bold rounded-full {{ $isOn ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
+                        <span class="px-3 py-1 text-xs font-bold rounded-full {{ $statusBadge }} flex items-center gap-1.5 shrink-0">
+                            <span class="w-2 h-2 rounded-full {{ $isOn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400' }}"></span>
                             {{ $actuator->status }}
                         </span>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 mb-4 space-y-2 text-xs">
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Mode Sistem</span>
-                            <span class="font-bold text-slate-800">{{ $actuator->mode }}</span>
+                    <!-- Meta Info Grid -->
+                    <div class="p-3.5 rounded-xl bg-slate-50/90 border border-slate-100 mb-5 grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[11px] font-semibold uppercase tracking-wider mb-0.5">Mode Operasi</span>
+                            <span class="font-bold {{ $isAuto ? 'text-emerald-700' : 'text-slate-700' }} flex items-center gap-1">
+                                <i data-lucide="{{ $isAuto ? 'bot' : 'hand' }}" class="w-3.5 h-3.5"></i>
+                                {{ $actuator->mode }}
+                            </span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Tipe Hardware</span>
-                            <span class="font-semibold text-slate-700 capitalize">{{ $actuator->type }}</span>
+                        <div>
+                            <span class="text-slate-400 block text-[11px] font-semibold uppercase tracking-wider mb-0.5">Node Controller</span>
+                            <span class="font-semibold text-slate-700 font-mono flex items-center gap-1">
+                                <i data-lucide="cpu" class="w-3.5 h-3.5 text-slate-400"></i>
+                                {{ $actuator->device ? $actuator->device->device_code : 'ESP32-01' }}
+                            </span>
                         </div>
                     </div>
 
                     <!-- Direct Control Form -->
-                    <form method="POST" action="{{ route('admin.actuators.control') }}" class="space-y-2">
+                    <form method="POST" action="{{ route('admin.actuators.control') }}" class="space-y-2.5">
                         @csrf
                         <input type="hidden" name="actuator_id" value="{{ $actuator->id }}">
 
                         <div class="grid grid-cols-2 gap-2">
                             <button type="submit" name="command" value="ON" 
-                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ $isOn ? 'bg-emerald-700 text-white shadow' : 'bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700' }}">
+                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5 {{ $isOn ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20 ring-2 ring-emerald-500' : 'bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700' }}">
                                 <i data-lucide="power" class="w-3.5 h-3.5"></i>
                                 Hidupkan
                             </button>
                             <button type="submit" name="command" value="OFF"
-                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 {{ !$isOn ? 'bg-slate-800 text-white' : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700' }}">
+                                    class="py-2.5 px-3 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5 {{ !$isOn ? 'bg-slate-800 text-white shadow-md shadow-slate-900/20' : 'bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700' }}">
                                 <i data-lucide="power-off" class="w-3.5 h-3.5"></i>
                                 Matikan
                             </button>
                         </div>
 
                         <button type="submit" name="command" value="AUTO"
-                                class="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 font-semibold text-xs text-slate-700 flex items-center justify-center gap-1.5">
+                                class="w-full py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 font-semibold text-xs text-slate-700 flex items-center justify-center gap-1.5 transition-colors {{ $isAuto ? 'bg-emerald-50/60 border-emerald-300 text-emerald-800 font-bold' : '' }}">
                             <i data-lucide="bot" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            Mode Otomatis
+                            Sinkron Mode Otomatis
                         </button>
                     </form>
                 </div>
             </div>
         @empty
-            <div class="col-span-full text-center py-8 bg-white rounded-2xl border border-slate-200 p-6 text-slate-400 text-xs">
+            <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200 p-6 text-slate-400 text-xs">
                 Belum ada data aktuator yang terdaftar di database.
             </div>
         @endforelse
